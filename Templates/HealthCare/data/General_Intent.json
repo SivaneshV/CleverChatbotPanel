@@ -1,0 +1,152 @@
+{
+    "intents": [{
+            "tag": "greeting",
+            "patterns": [
+                "Hi",
+                "Hey",
+                "Greetings",
+                "Greeting",
+                "Hello",
+                "Good day",
+                "Good morning",
+                "Good evening"
+            ],
+            "responses": [
+                "Hi, I am [CHATBOTNAME]. How can I help you today ?"
+            ]
+        },
+        {
+            "tag": "about SAM",
+            "patterns": [
+                "who are you",
+                "what is your name"
+            ],
+            "responses": [
+                "I am [CHATBOTNAME]. How can I help you today ?"
+            ]
+        },
+        {
+            "tag": "purpose",
+            "patterns": [
+                "what are you doing",
+                "are you busy"
+            ],
+            "responses": [
+                "I have been busy, I am helping people who have questions."
+            ]
+        },
+        {
+            "tag": "ok",
+            "patterns": [
+                "ok"
+            ],
+            "responses": [
+                "Are there any other questions I can help you with ?"
+            ]
+        },
+        {
+            "tag": "job",
+            "patterns": [
+                "what is your work",
+                "what's your work",
+                "your work",
+                "what is your job",
+                "what's your job",
+                "your job",
+                "your's job",
+                "your's work"
+            ],
+            "responses": [
+                "My job is to help people with their needs. Ask me a question, I will try to answer your questions to the best of my ability. I’m learning everyday."
+            ]
+        },
+        {
+            "tag": "Wishes",
+            "patterns": [
+                "Wonderful",
+                "Excellent",
+                "Amazing",
+                "Super"
+            ],
+            "responses": [
+                "Thank you! I'm so glad I could help."
+            ]
+        },
+        {
+            "tag": "Thank you",
+            "patterns": [
+                "Thank you",
+                "Thanks",
+                "nothing thanks",
+                "nothing thank you",
+                "nothing thankyou",
+                "no thank you",
+                "no thankyou",
+                "no thanks",
+                "thank you bye",
+                "thankyou bye"
+            ],
+            "responses": [
+                "Thank you, I'm so glad I could help."
+            ]
+        },
+        {
+            "tag": "how are you",
+            "patterns": [
+                "how are you",
+                "hi how are you"
+            ],
+            "responses": [
+                "I’m fine, thank you for asking. How can I help you ?"
+            ]
+        },
+        {
+            "tag": "Help",
+            "patterns": [
+                "Help",
+                "How can you help me",
+                "Will you help me",
+                "can you please help me",
+                "can you help me",
+                "Do you help me",
+                "will you do me a favour",
+                "favour"
+            ],
+            "responses": [
+                "That's what I'm here for! How can I help you ?"
+            ]
+        },
+        {
+            "tag": "Authenticating",
+            "patterns": [
+                "are you lying",
+                "liar",
+                "you liar",
+                "why are you lying",
+                "lie"
+            ],
+            "responses": [
+                "I am very honest, but I may not have all the answers. I am still learning. I will answer your questions to the best of my ability."
+            ]
+        },
+        {
+            "tag": "bye",
+            "patterns": [
+                "bye"
+            ],
+            "responses": [
+                "Goodbye. Come back if you need help with anything else!"
+            ]
+        },
+        {
+            "tag": "nothing",
+            "patterns": [
+                "nothing",
+                "no"
+            ],
+            "responses": [
+                "Ok bye. Come back if you need help with anything else!"
+            ]
+        }
+    ]
+}

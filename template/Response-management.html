@@ -1,0 +1,410 @@
+{% extends 'layout.html' %} {% block content %}
+<div class="content-wrapper">
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1>Response Management</h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="#">Home</a></li>
+                        <li class="breadcrumb-item active">Response Management</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="content">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-9">
+                    <div class="card card-outline card-primary">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-3">
+                                    <label for="domain_rm">Domain</label>
+                                    <select type="text" class="custom-select form-control-border" name="domain_rm" id="domain_rm" onchange="language()">
+                      <option value=""></option>
+                    </select>
+                                </div>
+                                <div class="col-3">
+                                    <label for="Customer_id_rm">Customer ID</label>
+                                    <select type="text" class="custom-select form-control-border" name="Customer_id_rm" id="Customer_id_rm" onchange="language()">
+                          <option value=""></option>
+                      </select>
+                                </div>
+                                <div class="col-3">
+                                    <label for="language_rm">Language</label>
+                                    <select type="text" class="custom-select form-control-border" name="language_rm" id="language_rm">
+                          <option value=""></option>
+                      </select>
+                                </div>
+                                <div class="card-body">
+                                    <label for="button"></label>
+                                    <input name="button" type="submit" value="View Details" class="btn btn-primary toastrDefaultSuccess" onclick="myFunction()"></input>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="row">
+                <div class="col-12">
+                    <div class="card card-outline card-primary">
+                        <div class="card-body table-responsive p-0" style="height: 400px;">
+                            <table id="full_table" class="table table-head-fixed text-nowrap">
+                                <thead>
+                                    <tr>
+                                        <th style="width:2%">#</th>
+                                        <th style="width:10%">Intent</th>
+                                        <th style="width:35%">Response</th>
+                                        <th style="width:15%">Bullets</th>
+                                        <th style="width:20%">Visit Page</th>
+                                        <th>Action</th>
+                                    </tr>
+                                    <tr>
+                                        <th></th>
+                                        <th>
+                                            <input id="intent_rm" type="text" class="form-control" placeholder="Enter intent" style="width: 200px">
+                                        </th>
+                                        <th>
+                                            <textarea id="response_rm" type="text" class="form-control" style="width: 100%"></textarea>
+                                        </th>
+                                        <th>
+                                            <textarea id="bullets_rm" type="text" class="form-control" style="width: 100%"></textarea>
+                                        </th>
+                                        <th>
+                                            <input id="visit_page_rm" type="text" class="form-control" placeholder="Enter visit page" style="width: 250px">
+                                        </th>
+                                        <th>
+                                            <input id="add_keyword_button" type="submit" value="Save" class="btn btn-primary toastrDefaultSuccess" onclick="savefunction()"></input>
+                                            <input id="edit_keyword" type="submit" value="Update" class="btn btn-primary" onclick="update()"></input>
+                                            <input id="change_button" type="submit" value="Cancel" class="btn btn-secondary" onclick="cancel()"></input>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody id="response-management-table">
+                                    <td colspan="6" style="text-align: center;">No Records Found.</td>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+<script>
+    $.ajaxSetup({
+        headers: {
+            "X-CSRFToken": '{{csrf_token}}'
+        }
+    });
+
+    $('#form').unbind().submit(function(e) {
+        e.preventDefault();
+
+        var data = {};
+        var Form = this;
+
+        $.each(this.elements, function(i, v) {
+            var input = $(v);
+            data[input.attr("name")] = input.val();
+        });
+
+        $.ajax({
+            type: 'POST',
+            url: '/table',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            success: function(data) {
+                $("#results").html(data);
+                $(".select2").remove();
+            },
+            error: function() {
+                $(this).html("error!");
+            }
+        });
+    });
+    $("#full_table").hide();
+    $("#processing").show();
+    $("#change_button").hide(200);
+    $("#edit_keyword").hide(200);
+    $.ajax({
+        type: 'POST',
+        url: '/get_domain',
+        contentType: 'application/json',
+        data: {},
+        success: function(data) {
+            data = $.parseJSON(data);
+            $("#domain_rm").find('option').remove();
+            $("#domain_rm").append('<option value="--Select Domain--">--Select Domain--</option>');
+            $.each(data, function(index, value) {
+                $("#domain_rm").append('<option value="' + value + '">' + value + '</option>');
+            });
+            $.ajax({
+                type: 'POST',
+                url: '/get_Customer_id',
+                contentType: 'application/json',
+                data: {},
+                success: function(data) {
+                    data = $.parseJSON(data);
+                    $("#Customer_id_rm").find('option').remove();
+                    $("#Customer_id_rm").append('<option value="--Select Customer ID--">--Select Customer ID--</option>');
+                    $.each(data, function(index, value) {
+                        $("#Customer_id_rm").append('<option value="' + value + '">' + value + '</option>');
+                    });
+                    $("#processing").hide();
+                },
+                error: function() {
+                    $(this).html("error!");
+                }
+            });
+        },
+        error: function() {
+            $(this).html("error!");
+        }
+    });
+</script>
+
+<script>
+    function cancel() {
+        $('#keyword').val('');
+        $('#edit_keyword').hide();
+        $('#add_keyword_button').show();
+        $('#change_button').hide(200);
+        $('#intent_rm').val('')
+        $('#intent_rm').attr('disabled', false)
+        $('#response_rm').val('');
+        $('#bullets_rm').val('');
+        $('#visit_page_rm').val('');
+    }
+</script>
+
+<script>
+    function language() {
+        $("#processing").show();
+        var data = new FormData();
+        data.append('domain_input', $("#domain_rm").val());
+        data.append('cust_id_input', $("#Customer_id_rm").val());
+        $.ajax({
+            type: 'POST',
+            enctype: 'multipart/form-data',
+            url: '/get_languages',
+            processData: false,
+            cache: false,
+            timeout: 800000,
+            contentType: false,
+            data: data,
+            success: function(data) {
+
+                data = $.parseJSON(data);
+                $("#language_rm").find('option').remove();
+                $("#language_rm").append('<option value="--Select Language--">--Select Language--</option>');
+                $.each(data, function(index, value) {
+                    $("#language_rm").append('<option value="' + value + '">' + value + '</option>');
+                });
+                $("#processing").hide();
+            },
+            error: function() {
+                $(this).html("error!");
+            }
+        });
+
+    }
+</script>
+
+
+
+<script>
+    function myFunction() {
+        if (($("#language_rm").val() == "--Select Language--") || ($("#domain_rm").val() == "--Select Domain--") || ($("#Customer_id_rm").val() == "--Select Customer ID--")) {
+
+            $("#response-management-table").empty();
+            var row = $("<tr/>");
+            row.append($('<td colspan="7" style="text-align:center" />').html('No Records Found.'));
+            $("#response-management-table").append(row);
+        } else {
+            $("#full_table").show();
+            $("#processing").show();
+            var data = new FormData();
+            data.append('domain_input', $("#domain_rm").val());
+            data.append('cust_id_input', $("#Customer_id_rm").val());
+            data.append('language_input', $("#language_rm").val());
+            $.ajax({
+                type: 'POST',
+                enctype: 'multipart/form-data',
+                url: '/get_response_management_table',
+                processData: false,
+                cache: false,
+                timeout: 800000,
+                contentType: false,
+                data: data,
+                success: function(response) {
+
+                    $('#response-management-table').empty()
+                    var data = $.parseJSON(response);
+                    if (Object.keys(data).length > 0) {
+
+                        for (var i = 0; i < Object.keys(data).length; i++) {
+
+                            var delete_key = data[i]["intent"]
+                            var edit_key = data[i]["intent"]
+                            var response = data[i]["response"]
+                            var bullets = data[i]["bullets"]
+                            var visitpage = data[i]["visit_page"]
+                            delete_key = delete_key.replace(/'/gi, "|");
+                            var row = $("<tr/>");
+                            row.append($('<td/>').html(i + 1));
+                            row.append($('<td/>').html(data[i]["intent"]));
+                            row.append($('<td/>').html(data[i]["response"]));
+                            row.append($('<td/>').html(data[i]["bullets"]));
+                            row.append($('<td/>').html(data[i]["visit_page"]));
+                            $('#response-management-table').append(row)
+                            try {
+                                var btn = $('<button onclick="deletefunction(\'' + delete_key + '\')"/>').addClass("btn btn-primary btn-sm").text("Delete");
+                                var bt = $('<button onclick="editfunction(\'' + edit_key + '\',\'' + response + '\',\'' + bullets + '\',\'' + visitpage + '\')"/>').addClass("btn btn-primary btn-sm").text("Edit");
+                                row.append($('<td/>').append(btn, "\t", bt));
+                                $("#response-management-table").append(row);
+                            } catch {}
+
+                        }
+
+                        $("#processing").hide();
+                    } else {
+                        $("#processing").hide();
+                    }
+                }
+
+            });
+
+        }
+    }
+</script>
+
+<script>
+    function deletefunction(delete_key) {
+        var r = confirm("Respective keywords also deleted ?");
+        if (r == true) {
+            $("#processing").show();
+            var data = new FormData();
+            data.append('domain_input', $("#domain_rm").val());
+            data.append('cust_id_input', $("#Customer_id_rm").val());
+            data.append('intent_input', $("#intent_rm").val());
+            data.append('delete_input', delete_key);
+            data.append('language_input', $("#language_rm").val());
+            $.ajax({
+                type: 'POST',
+                enctype: 'multipart/form-data',
+                url: '/delete_corpus_details',
+                processData: false,
+                cache: false,
+                timeout: 800000,
+                contentType: false,
+                data: data,
+                success: function(data) {
+
+                    $("#processing").hide();
+                    myFunction()
+
+                }
+            });
+        }
+    }
+</script>
+
+
+<script>
+    function savefunction() {
+        $("#processing").show();
+        var data = new FormData();
+        data.append('domain_input', $("#domain_rm").val());
+        data.append('cust_id_input', $("#Customer_id_rm").val());
+        data.append('intent_input', $("#intent_rm").val());
+        data.append('response_input', $("#response_rm").val());
+        data.append('bullets_input', $("#bullets_rm").val());
+        data.append('visit_page_input', $("#visit_page_rm").val());
+        data.append('language_input', $("#language_rm").val());
+        $.ajax({
+            type: 'POST',
+            enctype: 'multipart/form-data',
+            url: '/add_corpus_details',
+            processData: false,
+            cache: false,
+            timeout: 800000,
+            contentType: false,
+            data: data,
+            success: function(data) {
+                $("#processing").hide();
+                myFunction()
+                $('#intent_rm').val('');
+                $('#response_rm').val('');
+                $('#bullets_rm').val('');
+                $('#visit_page_rm').val('');
+
+            }
+        });
+
+
+
+    }
+</script>
+
+<script>
+    function editfunction(edit_key, response, bullets, visitpage) {
+        $('#intent_rm').val(edit_key)
+        $('#response_rm').val(response)
+        $('#bullets_rm').val(bullets)
+        $('#visit_page_rm').val(visitpage)
+        $('#intent_rm').attr('disabled', true);
+        $('#add_keyword_button').hide();
+        $('#change_button').show(200);
+        $('#edit_keyword').show();
+    }
+
+
+    function update() {
+        var data = new FormData();
+        data.append('domain_input', $("#domain_rm").val());
+        data.append('cust_id_input', $("#Customer_id_rm").val());
+        data.append('intent_input', $("#intent_rm").val());
+        data.append('response_input', $("#response_rm").val());
+        data.append('bullets_input', $("#bullets_rm").val());
+        data.append('visit_page_input', $("#visit_page_rm").val());
+        data.append('language_input', $("#language_rm").val());
+        $.ajax({
+            type: 'POST',
+            enctype: 'multipart/form-data',
+            url: '/edit_response_management',
+            processData: false,
+            cache: false,
+            timeout: 800000,
+            contentType: false,
+            data: data,
+            success: function(data) {
+                myFunction()
+                $('#intent_rm').val('');
+                $('#response_rm').val('');
+                $('#bullets_rm').val('');
+                $('#visit_page_rm').val('');
+                $('#intent_rm').attr('disabled', false);
+                $('#add_keyword_button').show();
+                $('#change_button').hide();
+                $('#edit_keyword').hide();
+                $("#processing").hide();
+
+
+            }
+        });
+    }
+</script>
+
+
+
+</body>
+
+</html>
+{% endblock %}

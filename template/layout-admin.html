@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Chatbot</title>
+    <!-- Ionicons -->
+    <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+    <!-- Tempusdominus Bootstrap 4 -->
+    <link rel="stylesheet" href="{{ url_for('static', filename= 'plugins/tempusdominus-bootstrap-4/css/tempusdominus-bootstrap-4.min.css') }}">
+    <!-- iCheck -->
+    <link rel="stylesheet" href="{{ url_for('static', filename= 'plugins/icheck-bootstrap/icheck-bootstrap.min.css') }}">
+    <!-- Toastr -->
+    <link rel="stylesheet" href="{{ url_for('static', filename= 'plugins/toastr/toastr.min.css') }}">
+    <!-- overlayScrollbars -->
+    <link rel="stylesheet" href="{{ url_for('static', filename= 'plugins/overlayScrollbars/css/OverlayScrollbars.min.css') }}">
+    <!-- Daterange picker -->
+    <link rel="stylesheet" href="{{ url_for('static', filename= 'plugins/daterangepicker/daterangepicker.css') }}">
+    <!-- summernote -->
+    <link rel="stylesheet" href="{{ url_for('static', filename= 'plugins/summernote/summernote-bs4.min.css') }}">
+    <!-- Google Font: Source Sans Pro -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="{{ url_for('static', filename= 'plugins/fontawesome-free/css/all.min.css') }}">
+    <!-- SweetAlert2 -->
+    <link rel="stylesheet" href="{{ url_for('static', filename= 'plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css') }}">
+    <!-- Toastr -->
+    <link rel="stylesheet" href="{{ url_for('static', filename= 'plugins/toastr/toastr.min.css') }}">
+    <!-- Theme style -->
+    <link rel="stylesheet" href="{{ url_for('static', filename= 'dist/css/adminlte.min.css') }}">
+    <style>
+        #processing {
+            display: none;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9999;
+            background-color: black;
+            opacity: 0.6;
+            position: fixed;
+            color: white;
+            text-align: center;
+            padding-top: 20%;
+            font-size: 16pt;
+            font-weight: 500;
+        }
+    </style>
+
+
+
+    <!-- jQuery -->
+    <script src="{{ url_for('static', filename= 'plugins/jquery/jquery.min.js') }}"></script>
+    <!-- jQuery UI 1.11.4 -->
+    <script src="{{ url_for('static', filename= 'plugins/jquery-ui/jquery-ui.min.js') }}"></script>
+
+    <script src="{{ url_for('static', filename= 'plugins/sweetalert2/sweetalert2.min.js') }}"></script>
+    <!-- Bootstrap 4 -->
+    <script src="{{ url_for('static', filename= 'plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+    <!-- ChartJS -->
+    <script src="{{ url_for('static', filename= 'plugins/chart.js/Chart.min.js') }}"></script>
+    <!-- Sparkline -->
+    <script src="{{ url_for('static', filename= 'plugins/sparklines/sparkline.js') }}"></script>
+    <!-- JQVMap -->
+    <script src="{{ url_for('static', filename= 'plugins/jqvmap/jquery.vmap.min.js') }}"></script>
+    <script src="{{ url_for('static', filename= 'plugins/jqvmap/maps/jquery.vmap.usa.js') }}"></script>
+    <!-- jQuery Knob Chart -->
+    <script src="{{ url_for('static', filename= 'plugins/jquery-knob/jquery.knob.min.js') }}"></script>
+    <!-- daterangepicker -->
+    <script src="{{ url_for('static', filename= 'plugins/moment/moment.min.js') }}"></script>
+    <script src="{{ url_for('static', filename= 'plugins/daterangepicker/daterangepicker.js') }}"></script>
+    <!-- Tempusdominus Bootstrap 4 -->
+    <script src="{{ url_for('static', filename= 'plugins/tempusdominus-bootstrap-4/js/tempusdominus-bootstrap-4.min.js') }}"></script>
+    <!-- Summernote -->
+    <script src="{{ url_for('static', filename= 'plugins/summernote/summernote-bs4.min.js') }}"></script>
+    <!-- overlayScrollbars -->
+    <script src="{{ url_for('static', filename= 'plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js') }}"></script>
+    <!-- AdminLTE App -->
+    <script src="{{ url_for('static', filename= 'dist/js/adminlte.js') }}"></script>
+    <!-- AdminLTE for demo purposes -->
+    <script src="{{ url_for('static', filename= 'dist/js/demo.js') }}"></script>
+    <!-- AdminLTE dashboard demo (This is only for demo purposes) -->
+    <script src="{{ url_for('static', filename= 'dist/js/pages/dashboard.js') }}"></script>
+    <!-- Toastr -->
+    <script src="{{ url_for('static', filename= 'plugins/toastr/toastr.min.js') }}"></script>
+
+</head>
+
+<!-- wrapper -->
+
+<body>
+    <!-- <input type="hidden" value="http://localhost:5000" id="boturl" /> -->
+    <!-- <div id="processing">Please Wait . . .</div> -->
+    {% include 'nav-admin.html' %} {% block content %} {% endblock %}
+</body>
+
+<div id="processing">Please wait while processing your request...</div>
+
+</html>
