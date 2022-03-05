@@ -14,23 +14,25 @@ corpus="Corpus.xlsx"
 corpus_ta="Corpus_ta.xlsx"
 intent_file_ta="Intent_ta.json"
 
-conn = mysql.connector.connect(host="localhost",user="root",passwd="Brainy123$",port='3306',database="chatbot_panel")
+conn = mysql.connector.connect(host="chatbot-panel.ckjqe647gpza.us-east-1.rds.amazonaws.com",user="admin",passwd="Cbt2020$",port='3306',database="sys")
+#conn = mysql.connector.connect(host="localhost",user="root",passwd="Brainy123$",port='3306',database="chatbot_panel")
 #conn = pyodbc.connect('Driver={SQL Server Native Client 11.0};Server=103.102.234.23;Database=Chatbot_Panel;uid=CB_Chatbot;pwd=Brainy123$;')
 #conn = pyodbc.connect('Driver={SQL Server Native Client 11.0};Server=localhost;Database=Chatbot_Panel;Trusted_Connection=yes;')
 
 cursor=conn.cursor()
 
 def get_customer_id_verification(cust_id, domain):
-    user = pd.read_sql_query("Select * from ChatBot_Panel Where Customer_ID='"+cust_id+"' and Domain='"+domain+"' and Status='Active';", conn)
+    user = pd.read_sql_query("Select * from chatbot_panel Where Customer_ID='"+cust_id+"' and Domain='"+domain+"' and Status='Active';", conn)
     if user.empty:
         return False
     else:
         return True
 
 def check_user(email, password):
-    user_check="Select * from Users Where Email='"+email+"' and password='"+password+"' and Status='Active';"
+    user_check="Select * from users Where Email='"+email+"' and password='"+password+"' and Status='Active';"
     cursor.execute(user_check)
     value=cursor.fetchall()
+    print(user_check)
     if len(value) > 0:
         for val in value:
             isfirstlogin=val[7]
@@ -45,13 +47,13 @@ def check_user(email, password):
         return "","","",""
  
 def get_domain():
-    Domain = pd.read_sql_query("Select distinct Domain from ChatBot_Panel where Status='Active';", conn)
+    Domain = pd.read_sql_query("Select distinct Domain from chatbot_panel where Status='Active';", conn)
     Domain = list(filter(lambda x: str(x) != '', Domain['Domain'].tolist()))
     Domain=sorted(Domain)
     return Domain
 
 def get_Customer_ID():
-    Customer_ID = pd.read_sql_query("Select CusId from Customers where Status='Active';", conn)
+    Customer_ID = pd.read_sql_query("Select CusId from customers where Status='Active';", conn)
     Customer_ID = list(filter(lambda x: str(x) != '', Customer_ID['CusId'].tolist()))
     return Customer_ID
 
@@ -93,8 +95,8 @@ def create_folder():
                     new_path=os.path.join(template_path,folder_name)
                     copy_tree(new_path, path_2)
                     cur=conn.cursor()
-                    # cur.execute("insert into ChatBot_Panel (ChatbotName,WelcomeMessage,Domain,Customer_ID,ColorCode) values (?,?,?,?,?);",(botname,welcome,name,customer_id,theme_color))
-                    cur.execute("insert into ChatBot_Panel (ChatbotName,Domain,Customer_ID,ColorCode) values (?,?,?,?,?);",(botname,name,customer_id,theme_color))
+                    # cur.execute("insert into chatbot_panel (ChatbotName,WelcomeMessage,Domain,Customer_ID,ColorCode) values (?,?,?,?,?);",(botname,welcome,name,customer_id,theme_color))
+                    cur.execute("insert into chatbot_panel (ChatbotName,Domain,Customer_ID,ColorCode) values (?,?,?,?,?);",(botname,name,customer_id,theme_color))
                     conn.commit()
                     cur.close()
 
@@ -106,8 +108,8 @@ def create_customer():
         password=request.form['createpassword']
         if customer_id != "" and user_type!="" and new_mail_id!="":
             cur=conn.cursor()
-            cur.execute("insert into Customers (CusId) values (?);",(customer_id))
-            cur.execute("insert into Users (Email,UserType,Cusid,password,IsFirstLogin) values (?,?,?,?,?);",(new_mail_id,user_type,customer_id,password,'Yes'))
+            cur.execute("insert into customers (CusId) values (?);",(customer_id))
+            cur.execute("insert into users (Email,UserType,Cusid,password,IsFirstLogin) values ('"+new_mail_id+"','"+user_type+"','"+customer_id+"','"+password+"','Yes');")
             conn.commit()
             cur.close()
       
@@ -203,7 +205,7 @@ def add_keyword_json():
         id=0                            
         user_id=session['userid']
         Description="keyword added using keyword management"
-        chatbot_id ="Select ChatBot_ID from ChatBot_Panel Where Domain='"+domain+"' and Customer_ID='"+cust_id+"' and Status='Active';"
+        chatbot_id ="Select ChatBot_ID from chatbot_panel Where Domain='"+domain+"' and Customer_ID='"+cust_id+"' and Status='Active';"
         cur=conn.cursor()
         cur.execute(chatbot_id)
         value=cur.fetchall()
@@ -279,13 +281,13 @@ def add_keyword_json():
         id=0
         user_id=session['userid']
         Description="keyword added using keyword management"
-        chatbot_id ="Select ChatBot_ID from ChatBot_Panel Where Domain='"+domain+"' and Customer_ID='"+cust_id+"' and Status='Active';"
+        chatbot_id ="Select ChatBot_ID from chatbot_panel Where Domain='"+domain+"' and Customer_ID='"+cust_id+"' and Status='Active';"
         cur=conn.cursor()
         cur.execute(chatbot_id)
         value=cur.fetchall()
         for val in value:
             id=val[0]
-        #cur.execute("insert into ChatBot_Audit (ChatBot_ID,User_ID,Description) values ("+id+","+user_id+",'"+Description+"');")
+        #cur.execute("insert into chatbot_audit (ChatBot_ID,User_ID,Description) values ("+id+","+user_id+",'"+Description+"');")
         conn.commit()
         cur.close()
 
@@ -326,13 +328,13 @@ def delete_corpus_details():
         id=0
         Description="corpus details deleted using response Management"
         user_id=session['userid']
-        chatbot_id ="Select ChatBot_ID from ChatBot_Panel Where Domain='"+domain+"' and Customer_ID='"+cust_id+"' and Status='Active';"
+        chatbot_id ="Select ChatBot_ID from chatbot_panel Where Domain='"+domain+"' and Customer_ID='"+cust_id+"' and Status='Active';"
         cur=conn.cursor()
         cur.execute(chatbot_id)
         value=cur.fetchall()
         for val in value:
             id=val[0]
-        #cur.execute("insert into ChatBot_Audit (ChatBot_ID,User_ID,Description) values ("+id+","+user_id+",'"+Description+"');")
+        #cur.execute("insert into chatbot_audit (ChatBot_ID,User_ID,Description) values ("+id+","+user_id+",'"+Description+"');")
         conn.commit()
         cur.close()
         audit_log(int(id), int(user_id), Description)
@@ -346,7 +348,7 @@ def view_chatbot_table():
     status_list=[]
     created_on_list=[]
     Chatbot_ID_list=[]
-    cursor.execute("select ChatbotName,WelcomeMessage,Domain,Customer_ID,ColorCode,Status,Created_on,Chatbot_ID from ChatBot_Panel order by Created_on desc;") 
+    cursor.execute("select ChatbotName,WelcomeMessage,Domain,Customer_ID,ColorCode,Status,Created_on,Chatbot_ID from chatbot_panel order by Created_on desc;") 
     data = cursor.fetchall()
     for x in data:
         botname=x[0]
@@ -409,7 +411,7 @@ def set_new_password(email):
     mail.SendMail(email, "Password has been reseted for CleverBrain Chatbot Panel", body, [current_path + "\static\dist\img\logotextalt.png"])
 
     cur=conn.cursor()
-    cur.execute("update Users set password=? , IsFirstLogin='Yes' where Email=?;",(pwd),(email))
+    cur.execute("update users set password='"+pwd+"', IsFirstLogin='Yes' where Email='"+email+"';")
     conn.commit()
     cur.close()
 
@@ -422,7 +424,7 @@ def view_customer_table():
     status_list=[]
     created_on_list=[]
     contact_list=[]
-    cursor.execute("select C.CusId,U.Email,U.UserType,C.Status,C.Created_on,U.Contact from Customers C Join Users U On C.CusId = U.CusId order by Created_on desc;") 
+    cursor.execute("select C.CusId,U.Email,U.UserType,C.Status,C.Created_on,U.Contact from customers C Join users U On C.CusId = U.CusId order by Created_on desc;") 
     data = cursor.fetchall()
     for x in data:
         cust_id=x[0]
@@ -456,14 +458,14 @@ def change_password_in_sql():
         password=request.form['password']
         user_id=session['userid']
         cur=conn.cursor()
-        cur.execute("update Users set password='"+password+"', IsFirstLogin='No' where UserID='"+user_id+"';")
+        cur.execute("update users set password='"+password+"', IsFirstLogin='No' where UserID='"+user_id+"';")
         conn.commit()
         cur.close()
 
 def get_chatbot_name(domain, cust_id):
     chatbotname = ''
     cursor=conn.cursor()
-    cursor.execute("Select ChatbotName from ChatBot_Panel Where Domain='"+domain+"' and Customer_ID='"+cust_id+"';")
+    cursor.execute("Select ChatbotName from chatbot_panel Where Domain='"+domain+"' and Customer_ID='"+cust_id+"';")
     value=cursor.fetchall()
     if len(value) > 0:
         for val in value:
@@ -476,7 +478,7 @@ def get_chatbot_name(domain, cust_id):
 def get_IsActiveCust(domain, cust_id):
     Status = ''
     cursor=conn.cursor()
-    cursor.execute("Select Status from ChatBot_Panel Where Domain='"+domain+"' and Customer_ID='"+cust_id+"';")
+    cursor.execute("Select Status from chatbot_panel Where Domain='"+domain+"' and Customer_ID='"+cust_id+"';")
     value=cursor.fetchall()
     if len(value) > 0:
         for val in value:
@@ -489,7 +491,7 @@ def get_IsActiveCust(domain, cust_id):
 def change_bot_status(botId, status):
     Status = ''
     cursor=conn.cursor()
-    cursor.execute("Update ChatBot_Panel set Status='"+status+"' Where Chatbot_Id='"+botId+"';")
+    cursor.execute("Update chatbot_panel set Status='"+status+"' Where Chatbot_Id='"+botId+"';")
     Status = 'Updated'
     #value=cursor.fetchall()
     # if len(value) > 0:
@@ -614,7 +616,7 @@ def add_corpus_details():
         id=0            
         Description="corpus details added using response Management"
         user_id=session['userid']
-        chatbot_id ="Select ChatBot_ID from ChatBot_Panel Where Domain='"+domain+"' and Customer_ID='"+cust_id+"' and Status='Active';"
+        chatbot_id ="Select ChatBot_ID from chatbot_panel Where Domain='"+domain+"' and Customer_ID='"+cust_id+"' and Status='Active';"
         cur=conn.cursor()
         cur.execute(chatbot_id)
         value=cur.fetchall()
@@ -629,7 +631,7 @@ def add_corpus_details():
 def get_welcome_message(domain, cust_id):
     welcome_message = ''
     cursor=conn.cursor()
-    cursor.execute("Select WelcomeMessage from ChatBot_Panel Where Domain='"+domain+"' and Customer_ID='"+cust_id+"' and Status='Active';")
+    cursor.execute("Select WelcomeMessage from chatbot_panel Where Domain='"+domain+"' and Customer_ID='"+cust_id+"' and Status='Active';")
     value=cursor.fetchall()
     if len(value) > 0:
         for val in value:
@@ -643,7 +645,7 @@ def get_welcome_message(domain, cust_id):
 def get_chatbot_theme(domain, cust_id):
     color_code = ''
     cursor=conn.cursor()
-    cursor.execute("Select ColorCode from ChatBot_Panel Where Domain='"+domain+"' and Customer_ID='"+cust_id+"' and Status='Active';")
+    cursor.execute("Select ColorCode from chatbot_panel Where Domain='"+domain+"' and Customer_ID='"+cust_id+"' and Status='Active';")
     value=cursor.fetchall()
     if len(value) > 0:
         for val in value:
@@ -743,7 +745,7 @@ def edit_manage_customer():
         email=request.form['mail_id']
         contact=request.form['contact']
         cur=conn.cursor()
-        cur.execute("update Users set Email=?,Contact=? where CusId=?;",(email),(contact),(cust_id))
+        cur.execute("update users set Email='"+email+"',Contact='"+contact+"' where CusId='"+cust_id+"';")
         conn.commit()
         cur.close()
 
@@ -756,7 +758,7 @@ def edit_manage_chatbot():
         botname=request.form['botname']
         cust_id=request.form['cust_id']
         cur=conn.cursor()
-        cur.execute("update ChatBot_Panel set WelcomeMessage='"+welcome+"' ,ChatbotName='"+botname+"' ,ColorCode='"+color+"' where Domain='"+domain+"' and  Customer_ID='"+cust_id+"';")
+        cur.execute("update chatbot_panel set WelcomeMessage='"+welcome+"' ,ChatbotName='"+botname+"' ,ColorCode='"+color+"' where Domain='"+domain+"' and  Customer_ID='"+cust_id+"';")
         conn.commit()
         cur.close()
 
@@ -812,7 +814,7 @@ def get_languages_by_details(domain, cust_id):
     
 def audit_log(id, user_id, Description):
 
-    query = "insert into ChatBot_Audit (ChatBot_ID,User_ID,Description) values ("+str(id)+","+str(user_id)+",'"+Description+"');"
+    query = "insert into chatbot_audit (ChatBot_ID,User_ID,Description) values ("+str(id)+","+str(user_id)+",'"+Description+"');"
     
     print(query)
     cur=conn.cursor()
@@ -828,7 +830,7 @@ def send_contact(Domain, CustId, contact_name, contact_email, contact_number):
     cwd = os.getcwd()
     current_path = cwd
 
-    user_check="Select * from Users Where CusId='"+CustId+"' and Status='Active';"
+    user_check="Select * from users Where CusId='"+CustId+"' and Status='Active';"
     cursor.execute(user_check)
     value=cursor.fetchall()
     if len(value) > 0:
