@@ -46,7 +46,7 @@
                       </select>
                                 </div>
                                 <div class="col-4">
-                                    <label for="intent_km">Intent</label>
+                                    <label for="intent_km">Topic</label>
                                     <select type="text" class="custom-select form-control-border" name="intent_km" id="intent_km">
                       <option value=""></option>
                       </select>
@@ -192,7 +192,7 @@
 
                 data = $.parseJSON(data);
                 $("#intent_km").find('option').remove();
-                $("#intent_km").append('<option value="--Select Intent--">--Select Intent--</option>');
+                $("#intent_km").append('<option value="--Select Topic--">--Select Topic--</option>');
                 $.each(data, function(index, value) {
                     $("#intent_km").append('<option value="' + value + '">' + value + '</option>');
                 });
@@ -258,7 +258,7 @@
 
                         data = $.parseJSON(data);
                         $("#intent_km").find('option').remove();
-                        $("#intent_km").append('<option value="--Select Intent--">--Select Intent--</option>');
+                        $("#intent_km").append('<option value="--Select Topic--">--Select Topic--</option>');
                         $.each(data, function(index, value) {
                             $("#intent_km").append('<option value="' + value + '">' + value + '</option>');
                         });
@@ -282,7 +282,7 @@
 
 <script>
     function save_button() {
-        if (($("#language_km").val() == "--select Language--") || ($("#domain_km").val() == "--Select Domain--") || ($("#Customer_id_km").val() == "--Select Customer ID--") || ($("#intent_km").val() == "--Select Intent--")) {
+        if (($("#language_km").val() == "--select Language--") || ($("#domain_km").val() == "--Select Domain--") || ($("#Customer_id_km").val() == "--Select Customer ID--") || ($("#intent_km").val() == "--Select Topic--")) {
 
             $("#keyword-management-table").empty();
             var row = $("<tr/>");

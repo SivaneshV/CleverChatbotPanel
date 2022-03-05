@@ -219,7 +219,7 @@
 
                 data = $.parseJSON(data);
                 $("#intent_km").find('option').remove();
-                $("#intent_km").append('<option value="--Select Intent--">--Select Intent--</option>');
+                $("#intent_km").append('<option value="--Select Topic--">--Select Topic--</option>');
                 $.each(data, function(index, value) {
                     $("#intent_km").append('<option value="' + value + '">' + value + '</option>');
                 });
@@ -237,14 +237,13 @@
 
 <script>
     function save_button() {
-        if (($("#language_km").val() == "--select Language--") || ($("#domain_km").val() == "--Select Domain--") || ($("#Customer_id_km").val() == "--Select Customer ID--") || ($("#intent_km").val() == "--Select Intent--")) {
+        if (($("#language_km").val() == "--select Language--") || ($("#domain_km").val() == "--Select Domain--") || ($("#Customer_id_km").val() == "--Select Customer ID--") || ($("#intent_km").val() == "--Select Topic--")) {
 
             $("#keyword-management-table").empty();
             var row = $("<tr/>");
             row.append($('<td colspan="7" style="text-align:center" />').html('No Records Found.'));
             $("#keyword-management-table").append(row);
-            }
-        else {
+        } else {
             $("#full_table_km").show();
 
             $("#processing").show();
@@ -283,8 +282,8 @@
                 }
 
             });
-            }
         }
+    }
 </script>
 
 

@@ -21,11 +21,17 @@ class response_finder:
         # self.website_data, self.master_intent_entity = load_corpus.get_data()
 
 
-    def get_welcome_message(self, domain, cust_id):
+    def get_welcome_message(self, domain, cust_id, corpus_path):
         
         res_json = {}
+        
+        website_data, master_intent_entity = load_corpus.get_data(corpus_path)
+        corpus = website_data
+        corpus = corpus.loc[(corpus['Functional Area'] == "Welcome Message")]
+        
+        welcome_message = str(corpus['Response'].iloc[0])
 
-        welcome_message = db_proxy.get_welcome_message(domain, cust_id)
+        #welcome_message = db_proxy.get_welcome_message(domain, cust_id)
         
         try:            
             res_json = {
@@ -37,7 +43,8 @@ class response_finder:
                 "image_url": '',
                 "display_type": 'Welcome',
                 "recommend_intent": '',
-                "visit_page": ''
+                "visit_page": '',
+                "other": ''
             }
 
         except Exception as e:
@@ -56,7 +63,7 @@ class response_finder:
             
             return resultwords
 
-    def find_response(self, chat_message, corpus_path, general_intent_json_path, intent_json_path, chatbotname, isRecommend=False):
+    def find_response(self, chat_message, corpus_path, general_intent_json_path, intent_json_path, chatbotname, Lang, isRecommend=False):
         res_json = {}
         try:
             chat = ''
@@ -95,6 +102,7 @@ class response_finder:
                     #recommend_text = '' if str(corpus['Recommend Text'].iloc[0]) == 'nan' else corpus['Recommend Text'].iloc[0]
                     recommend_intent = '' if str(corpus['Recommend Intent'].iloc[0]) == 'nan' else corpus['Recommend Intent'].iloc[0]
                     visit_page = '' if str(corpus['Visit Page'].iloc[0]) == 'nan' else corpus['Visit Page'].iloc[0]
+                    other = '' if str(corpus['Functional Area'].iloc[0]) == 'nan' else corpus['Functional Area'].iloc[0]
 
                     res_json = {
                         "output_text": output_text,
@@ -106,7 +114,8 @@ class response_finder:
                         #"recommend_text": recommend_text,
                         "recommend_intent": recommend_intent,
                         "visit_page": visit_page,
-                        "is_general": False
+                        "is_general": False,
+                        "other": other
                     }
                 else:
                     cnt = 1
@@ -131,6 +140,7 @@ class response_finder:
                                 #recommend_text = '' if str(corpus['Recommend Text'].iloc[0]) == 'nan' else corpus['Recommend Text'].iloc[0]
                                 recommend_intent = '' if str(corpus['Recommend Intent'].iloc[0]) == 'nan' else corpus['Recommend Intent'].iloc[0]
                                 visit_page = '' if str(corpus['Visit Page'].iloc[0]) == 'nan' else corpus['Visit Page'].iloc[0]
+                                other = '' if str(corpus['Functional Area'].iloc[0]) == 'nan' else corpus['Functional Area'].iloc[0]
 
                                 res_json = {
                                     "output_text": output_text,
@@ -142,7 +152,8 @@ class response_finder:
                                     #"recommend_text": recommend_text,
                                     "recommend_intent": recommend_intent,
                                     "visit_page": visit_page,
-                                    "is_general": False
+                                    "is_general": False,
+                                    "other": other
                                 }
                                 break
 
@@ -156,7 +167,10 @@ class response_finder:
                 response = response.replace("[CHATBOTNAME]", chatbotname)
                 # print('response', response)
                 if str(response).strip() == '':
-                    response = "I am sorry, can you rephrase your question?"
+                    if Lang == "English":
+                        response = "I am sorry, can you rephrase your question?"
+                    else:
+                        response = "மன்னிக்கவும், உங்கள் கேள்வியை மாற்றி முடியுமா?"
                 res_json = {
                     "output_text": response,
                     "bullet": '',
@@ -167,7 +181,8 @@ class response_finder:
                     #"recommend_text": recommend_text,
                     "recommend_intent": '',
                     "visit_page": '',
-                    "is_general": True
+                    "is_general": True,
+                    "other": ''
                 }
 
         except Exception as e:

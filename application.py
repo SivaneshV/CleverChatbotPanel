@@ -1,19 +1,19 @@
+# %% Import(s)
 import find_response
 import response_generator
 import get_history
 from lazywritter import log_writter
-from flask import Flask, request
+from flask import Flask, request, flash, jsonify
+import subprocess
+import time
 import datetime
+import os
+import sys
 import config
 import EnDe
-from flask_cors import CORS, cross_origin
+from flask_cors import CORS
 import auth
 import json
-from flask import Flask, request,render_template,session
-import db_proxy
-import json
-import EnDe
-
 
 # %% Declaration(s)
 cfg = config.Config()
@@ -91,7 +91,7 @@ def keyword_management():
             return render_template('login.html')
     except:
         return render_template('login.html')
-
+    
     if session['UserType']=="User":
         return render_template("Keyword-management-user.html")
 
@@ -111,7 +111,7 @@ def response_management():
 
     if session['UserType']=="User":
         return render_template("Response-management-user.html")
-
+    
     elif session['UserType']=="Admin":
         return render_template("Response-management-Admin.html")
 
@@ -132,8 +132,6 @@ def get_intent_json():
 def get_response_management_table():
     intent=db_proxy.get_response_management_table()
     return intent.to_json(orient="index")
-
-
 
 @application.route('/get_keyword_management_intent', methods=['GET', 'POST'])
 def get_keyword_management_intent():
@@ -240,9 +238,9 @@ def logon():
             session['UserType']=usertype
             login_users.append(email)
             session['email'] = email
-
+        
     return res
-
+    
 
 @application.route('/get_customer_id_user', methods=['GET', 'POST'])
 def get_customer_id_user():
@@ -250,7 +248,7 @@ def get_customer_id_user():
     custid=session['custid']
     lst.append(custid)
     return json.dumps(lst)
-
+    
 # @application.route('/get_all_domains', methods=['GET', 'POST'])
 # def get_all_domains():
 #     lst=[]
@@ -284,7 +282,7 @@ def create_customer():
 def view_chatbot_table(): 
     intent=db_proxy.view_chatbot_table()
     return intent.to_json(orient="index")
-
+    
 @application.route("/view_customer_table" ,methods=["GET","POST"])
 def view_customer_table(): 
     intent=db_proxy.view_customer_table()
@@ -340,14 +338,14 @@ def getConfigs():
         pass
 
     config_details = cfg.get_ui_configs()
-
+    
     configs = {
         "chat_timeout_sec": config_details["chat_timeout_sec"],
         "chat_anythingelse_sec": config_details["chat_anythingelse_sec"]
     }
 
     return configs
-
+    
 @application.route('/feedback', methods=['GET', 'POST'])
 @cross_origin()
 def feedback():
@@ -361,33 +359,35 @@ def feedback():
         return unauthorized_msg
         pass
 
-    history = get_history.History()
-    feedback = request.headers.get('feedback')
+    #history = get_history.History()
+    #feedback = request.headers.get('feedback')
     disp_t = request.form.get('disp_t')
-    UIProtocolHostName = request.form.get('UIProtocolHostName')
-    uid = request.args['uid']
+    # UIProtocolHostName = request.form.get('UIProtocolHostName')
+    # uid = request.args['uid']
 
-    user_chat = "<p>" + feedback + "</p>"
+    # user_chat = "<p>" + feedback + "</p>"
+    
+    # cur_response = ''
+    # if feedback.lower() == "yes":
+    #     cur_response = cur_response + '<p>How may I help you?</p>'
+    # else:
+    #     cur_response = cur_response + "<p>Thank you! I'm so glad I could help.</p>"
 
-    cur_response = ''
-    if feedback.lower() == "yes":
-        cur_response = cur_response + '<p>How may I help you?</p>'
-    else:
-        cur_response = cur_response + "<p>Thank you! I'm so glad I could help.</p>"
+    # history.check_update_history(uid, user_chat, cur_response, disp_t)
 
-    history.check_update_history(uid, user_chat, cur_response, disp_t)
+    # IsLast = ""
+    # if "I'm so glad I could help" in cur_response:
+    #     IsLast = "true"
 
-    IsLast = ""
-    if "I'm so glad I could help" in cur_response:
-        IsLast = "true"
+    # response = {
+    #     "chats": [{"message": cur_response, "who": "bot", "time": datetime.datetime.now().strftime(chat_msg_time_format), "display_time": disp_t, "is_last": IsLast}],
+    #     "uid": uid
+    # }
 
-    response = {
-        "chats": [{"message": cur_response, "who": "bot", "time": datetime.datetime.now().strftime(chat_msg_time_format), "display_time": disp_t, "is_last": IsLast}],
-        "uid": uid
-    }
+    response = geneset.generate_feedback(disp_t)
 
     return response
-
+    
 @application.route('/timeouthit', methods=['GET', 'POST'])
 @cross_origin()
 def timeouthit():
@@ -404,7 +404,7 @@ def timeouthit():
     history = get_history.History()
     disp_t = request.form.get('disp_t')
     uid = request.args['uid']
-
+    
     chatbotname = get_chatbot_name()
     cur_response = ''
     cur_response = cur_response + "<p>Hi, I am "+chatbotname+". How can I help you today?</p>"
@@ -421,7 +421,7 @@ def timeouthit():
         }
 
     return response
-
+    
 
 @application.route('/lookingfor', methods=['GET', 'POST'])
 @cross_origin()
@@ -439,12 +439,12 @@ def lookingfor():
     #history = get_history.History()
     disp_t = request.form.get('disp_t')
     uid = request.args['uid']
-
+    
     cur_response = ''
     cur_response = cur_response + '<p>Is there anything else you are looking for?</p>'
     cur_response = cur_response + '<button class="chat-feedback-button-no" onclick="feedbacklookingno()">No</button>'
     cur_response = cur_response + '<button class="chat-feedback-button-yes" onclick="feedbacklookingyes()">Yes</button>'
-
+    
     #isAvoid = history.check_update_bot_history(uid, cur_response, disp_t)
     response = ''
 
@@ -475,7 +475,7 @@ def chatbot():
         UIProtocolHostName = request.form.get('UIProtocolHostName')
         user_input_chat = request.form.get('conv')
         user_message_formatted = request.form.get('user_message_formatted')
-
+        
         user_chat=user_input_chat
         uid = request.args['uid']
         is_recommend = False
@@ -489,15 +489,18 @@ def chatbot():
         general_intent_json_path = get_general_intent_json_path()
         intent_json_path = get_intent_json_path()
         chatbotname = get_chatbot_name()
-
-        res_json = finder.find_response(user_chat, corpus_path, general_intent_json_path, intent_json_path, chatbotname, is_recommend)
-
-        cur_response = geneset.generate_response(res_json, UIProtocolHostName)
-
+        Lang = request.headers.get("Lang")
+        print(user_chat)
+        
+        res_json = finder.find_response(user_chat, corpus_path, general_intent_json_path, intent_json_path, chatbotname, Lang, is_recommend)
+        
+        cur_response = geneset.generate_response(res_json, UIProtocolHostName, Lang)
+        
         uid = history.check_generate_uid(uid)
-
-        history.check_update_history(uid, user_message_formatted, cur_response, disp_t)
-
+        
+        if 'cb_contact_name' not in cur_response:
+            history.check_update_history(uid, user_message_formatted, cur_response, disp_t)
+        
         seperate_response = ""
 
         IsLast = ""
@@ -544,13 +547,16 @@ def chathistory():
     uid = request.args['uid']
     Domain = request.headers.get("Domain")
     Cust_Id = request.headers.get("WhoIs")
-
+    
     Domain = EnDe.decode(Domain)
     Cust_Id = EnDe.decode(Cust_Id)
 
-    uid = history.check_generate_uid(uid)
-    response = history.get_history_alone(uid, finder, geneset, disp_t, UIProtocolHostName, Domain, Cust_Id)
+    corpus_path = get_corpus_path()
+    Lang = request.headers.get("Lang")
 
+    uid = history.check_generate_uid(uid)
+    response = history.get_history_alone(uid, finder, geneset, disp_t, UIProtocolHostName, Domain, Cust_Id, corpus_path, Lang)
+    
     return response
 
 
@@ -566,7 +572,7 @@ def getKeys():
     except Exception as d:
         return unauthorized_msg
         pass
-
+    
     intent_json_path = get_intent_json_path()
 
     keys = finder.getAllKeywordsForAutocomplete(intent_json_path)
@@ -586,10 +592,10 @@ def getBotTheme():
     except Exception as d:
         return unauthorized_msg
         pass
-
+    
     Domain = request.headers.get("Domain")
     Cust_Id = request.headers.get("WhoIs")
-
+    
     Domain = EnDe.decode(Domain)
     Cust_Id = EnDe.decode(Cust_Id)
 
@@ -610,10 +616,10 @@ def getBotLanguages():
     except Exception as d:
         return unauthorized_msg
         pass
-
+    
     Domain = request.headers.get("Domain")
     Cust_Id = request.headers.get("WhoIs")
-
+    
     Domain = EnDe.decode(Domain)
     Cust_Id = EnDe.decode(Cust_Id)
 
@@ -627,21 +633,21 @@ def getBotLanguages():
 def getChatbotName():
     Domain = request.headers.get("Domain")
     Cust_Id = request.headers.get("WhoIs")
-
+    
     Domain = EnDe.decode(Domain)
     Cust_Id = EnDe.decode(Cust_Id)
 
     chatbotname = db_proxy.get_chatbot_name(Domain, Cust_Id)
 
     return chatbotname
-
+    
 
 @application.route('/getIsActiveCust', methods=['GET', 'POST'])
 @cross_origin()
 def getIsActiveCust():
     Domain = request.headers.get("Domain")
     Cust_Id = request.headers.get("WhoIs")
-
+    
     Domain = EnDe.decode(Domain)
     Cust_Id = EnDe.decode(Cust_Id)
 
@@ -649,11 +655,41 @@ def getIsActiveCust():
 
     return status
 
+@application.route('/SendContactDetails', methods=['GET', 'POST'])
+@cross_origin()
+def SendContactDetails():
+    Domain = request.headers.get("Domain")
+    Cust_Id = request.headers.get("WhoIs")
+    Lang = request.headers.get("Lang")
+    contact_name = request.form.get('contact_name')
+    contact_email = request.form.get('contact_email')
+    contact_number = request.form.get('contact_number')
+    disp_t = request.form.get('disp_t')
+    uid = request.args['uid']
+
+    Domain = EnDe.decode(Domain)
+    Cust_Id = EnDe.decode(Cust_Id)
+
+    res = db_proxy.send_contact(Domain, Cust_Id, contact_name, contact_email, contact_number)
+    ctrl = ""
+
+    if Lang == "English":
+        ctrl = geneset.generate_plain_text("Thank you for connecting with us. We will get back to you.<br>Is there anything else you are looking for ?", disp_t)
+    else:
+        ctrl = geneset.generate_plain_text("எங்களுடன் இணைந்ததற்கு நன்றி. நாங்கள் உங்களை தொடர்புகொள்வோம்.<br>வேறு ஏதாவது கேட்க விரும்புகிறீர்களா ?", disp_t)
+
+    response = {
+            "chats": [{"message": ctrl, "who": "bot", "time": datetime.datetime.now().strftime(chat_msg_time_format), "display_time": disp_t, "seperate_response": "", "is_last": "", 'is_general': ""}],
+            "uid": uid
+        }
+
+    return response
+    
 
 def get_chatbot_name():
     Domain = request.headers.get("Domain")
     Cust_Id = request.headers.get("WhoIs")
-
+    
     Domain = EnDe.decode(Domain)
     Cust_Id = EnDe.decode(Cust_Id)
 
@@ -664,10 +700,10 @@ def get_chatbot_name():
 def get_root_path():
     Domain = request.headers.get("Domain")
     Cust_Id = request.headers.get("WhoIs")
-
+    
     Domain = EnDe.decode(Domain)
     Cust_Id = EnDe.decode(Cust_Id)
-
+    
     return "Working_dir/" + Domain + "_" + Cust_Id + "/data/"
 
 def get_corpus_path():
@@ -688,7 +724,7 @@ def get_general_intent_json_path():
     if Lang.lower() == "english":
         return root_path + "General_Intent.json"
     else:
-        return root_path + "General_Intent_" + Lang + ".xlsx"
+        return root_path + "General_Intent_" + Lang + ".json"
 
 def get_intent_json_path():
     Lang = request.headers.get("Lang")
@@ -698,7 +734,7 @@ def get_intent_json_path():
     if Lang.lower() == "english":
         return root_path + "Intent.json"
     else:
-        return root_path + "Intent_" + Lang + ".xlsx"
+        return root_path + "Intent_" + Lang + ".json"
 
 
 # if __name__ == "__main__":

@@ -58,12 +58,12 @@
                             </div>
                             <br>
                             <div class="row">
-                                <div class="col-3">
+                                <!-- <div class="col-3">
                                     <label for="welcome">Welcome Message</label>
                                     <textarea id="welcome" type="text" class="form-control" style="width: 100%"></textarea>
-                                </div>
+                                </div> -->
                                 <div class="col-3">
-                                    <br><br>
+                                    <!-- <br><br> -->
                                     <input id="create_button" type="submit" value="CREATE NEW CHATBOT" class="btn btn-primary" onclick="submitbutton()">
                                     </input>
                                     <input id="update_button" type="submit" value="UPDATE CHATBOT" class="btn btn-primary" onclick="update()">
@@ -93,7 +93,7 @@
                                     <tr>
                                         <th>#</th>
                                         <th>ChatbotName</th>
-                                        <th>Welcome Message</th>
+                                        <!-- <th>Welcome Message</th> -->
                                         <th>Domain</th>
                                         <th>Customer_ID</th>
                                         <th>Color</th>
@@ -141,12 +141,12 @@
                         var edit_key = data[i]['customer_id']
                         var domain = data[i]['domain']
                         var botname = data[i]['botname']
-                        var welcome = data[i]['welcome']
+                            // var welcome = data[i]['welcome']
                         var color = data[i]['color']
                         var row = $("<tr/>");
                         row.append($('<td/>').html(i + 1));
                         row.append($('<td/>').html(data[i]["botname"]));
-                        row.append($('<td/>').html(data[i]["welcome"]));
+                        // row.append($('<td/>').html(data[i]["welcome"]));
                         row.append($('<td/>').html(data[i]["domain"]));
                         row.append($('<td/>').html(data[i]["customer_id"]));
                         row.append($('<td/>').html("<div style='height: 25px; width: 25px; border-radius:5px; background-color: " + data[i]["color"] + "'></div>"));
@@ -260,7 +260,7 @@
     function editfunction(el) {
         edit_key = $(el).parents('tr').find("td:eq(4)").text();
         botname = $(el).parents('tr').find("td:eq(1)").text();
-        welcome = $(el).parents('tr').find("td:eq(2)").text();
+        // welcome = $(el).parents('tr').find("td:eq(2)").text();
         domain = $(el).parents('tr').find("td:eq(3)").text();
         color = rgb2hex($(el).parents('tr').find("td:eq(5)").find("div").css("background-color"));
 
@@ -273,7 +273,7 @@
         $('#update_button').show(200);
         $('#edit_id').val(edit_key);
         $('#botname').val(botname);
-        $('#welcome').val(welcome);
+        // $('#welcome').val(welcome);
         $('#color').val(color);
         $('#edit_domain').val(domain);
         $('#edit_domain').attr('disabled', true);
@@ -308,7 +308,7 @@
 
                     var data = new FormData();
                     data.append('domain', $("#name").val());
-                    data.append('welcome', $("#welcome").val());
+                    // data.append('welcome', $("#welcome").val());
                     data.append('cust_id', $("#Customer_id_rm").val());
                     data.append('botname', $("#botname").val());
                     data.append('theme_color', $("#color").val());
@@ -360,7 +360,7 @@
             $('#name').show();
             $('#edit_id').val('')
             $('#botname').val('')
-            $('#welcome').val('')
+                // $('#welcome').val('')
             $('#color').val('')
             $('#name').attr('disabled', false);
             $('#edit_id').attr('disabled', false);
@@ -375,7 +375,7 @@
     function update() {
         var data = new FormData();
         data.append('domain', $("#edit_domain").val());
-        data.append('welcome', $("#welcome").val());
+        // data.append('welcome', $("#welcome").val());
         data.append('color', $("#color").val());
         data.append('botname', $("#botname").val());
         data.append('cust_id', $("#edit_id").val());

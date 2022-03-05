@@ -65,7 +65,7 @@ def get_extracted_keywords(intent_json_path):
         lots_of_stopwords.append(str(line.strip()))
     
     # with open("./data/Intent.json") as json_data:
-    with open(intent_json_path) as json_data:
+    with open(intent_json_path, encoding="utf8") as json_data:
         intents = json.load(json_data)
     
     stopwords_plus = []

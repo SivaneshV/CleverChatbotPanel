@@ -59,16 +59,19 @@
                                 <thead>
                                     <tr>
                                         <th style="width:2%">#</th>
-                                        <th style="width:10%">Intent</th>
-                                        <th style="width:35%">Response</th>
+                                        <th style="width:7%">Topic</th>
+                                        <th style="width:32%">Response</th>
                                         <th style="width:15%">Bullets</th>
-                                        <th style="width:20%">Visit Page</th>
+                                        <th style="width:15%">Visit Page</th>
+                                        <th style="width:15%">Image URL</th>
+                                        <th style="width:8%">Is Welcome</th>
+                                        <th style="width:8%">Get User Contact</th>
                                         <th>Action</th>
                                     </tr>
                                     <tr>
                                         <th></th>
                                         <th>
-                                            <input id="intent_rm" type="text" class="form-control" placeholder="Enter intent" style="width: 200px">
+                                            <input id="intent_rm" type="text" class="form-control" placeholder="Enter Topic" style="width: 100%">
                                         </th>
                                         <th>
                                             <textarea id="response_rm" type="text" class="form-control" style="width: 100%"></textarea>
@@ -77,8 +80,20 @@
                                             <textarea id="bullets_rm" type="text" class="form-control" style="width: 100%"></textarea>
                                         </th>
                                         <th>
-                                            <input id="visit_page_rm" type="text" class="form-control" placeholder="Enter visit page" style="width: 250px">
+                                            <input id="visit_page_rm" type="text" class="form-control" placeholder="Enter visit page" style="width: 100%">
                                         </th>
+                                        <th>
+                                            <input id="image_url" type="text" class="form-control" placeholder="Enter image URL" style="width: 100%">
+                                        </th>
+                                        <th>
+                                            <input class="form-control" style="width: 20px;" name="wel" type="checkbox" value="" id="iswelcome">
+                                        </th>
+                                        <th>
+                                            <input class="form-control" style="width: 20px;" name="wel" type="checkbox" value="" id="getusercontact">
+                                        </th>
+                                        <!-- <th>
+                                            <input class="form-control" style="width: 20px;" name="wel" type="checkbox" value="" id="getfeedback">
+                                        </th> -->
                                         <th>
                                             <input id="add_keyword_button" type="submit" value="Save" class="btn btn-primary toastrDefaultSuccess" onclick="savefunction()"></input>
                                             <input id="edit_keyword" type="submit" value="Update" class="btn btn-primary" onclick="update()"></input>
@@ -87,7 +102,7 @@
                                     </tr>
                                 </thead>
                                 <tbody id="response-management-table">
-                                    <td colspan="6" style="text-align: center;">No Records Found.</td>
+                                    <td colspan="9" style="text-align: center;">No Records Found.</td>
                                 </tbody>
                             </table>
                         </div>
@@ -101,6 +116,17 @@
     $.ajaxSetup({
         headers: {
             "X-CSRFToken": '{{csrf_token}}'
+        }
+    });
+
+    $("input:checkbox").on('click', function() {
+        var $box = $(this);
+        if ($box.is(":checked")) {
+            var group = "input:checkbox[name='" + $box.attr("name") + "']";
+            $(group).prop("checked", false);
+            $box.prop("checked", true);
+        } else {
+            $box.prop("checked", false);
         }
     });
 
@@ -181,6 +207,10 @@
         $('#response_rm').val('');
         $('#bullets_rm').val('');
         $('#visit_page_rm').val('');
+        $('#image_url').val('');
+        $('#iswelcome').prop('checked', false);
+        $('#getusercontact').prop('checked', false);
+        //$('#getfeedback').prop('checked', false);
     }
 </script>
 
@@ -225,7 +255,7 @@
 
             $("#response-management-table").empty();
             var row = $("<tr/>");
-            row.append($('<td colspan="7" style="text-align:center" />').html('No Records Found.'));
+            row.append($('<td colspan="10" style="text-align:center" />').html('No Records Found.'));
             $("#response-management-table").append(row);
         } else {
             $("#full_table").show();
@@ -251,6 +281,7 @@
 
                         for (var i = 0; i < Object.keys(data).length; i++) {
 
+                            var other = data[i]["other"]
                             var delete_key = data[i]["intent"]
                             var edit_key = data[i]["intent"]
                             var response = data[i]["response"]
@@ -260,13 +291,31 @@
                             var row = $("<tr/>");
                             row.append($('<td/>').html(i + 1));
                             row.append($('<td/>').html(data[i]["intent"]));
-                            row.append($('<td/>').html(data[i]["response"]));
+                            row.append($('<td/>').html($('<textarea/>').html(data[i]["response"]).attr('readonly', true).addClass("td-response")));
                             row.append($('<td/>').html(data[i]["bullets"]));
-                            row.append($('<td/>').html(data[i]["visit_page"]));
+                            row.append($('<td/>').html($('<textarea/>').html(data[i]["visit_page"]).attr('readonly', true).addClass("td-response")));
+                            row.append($('<td/>').html($('<textarea/>').html(data[i]["image_url"]).attr('readonly', true).addClass("td-response")));
+                            if (other == "Welcome Message") {
+                                row.append($('<td/>').html(other));
+                                row.append($('<td/>').html(""));
+                                //row.append($('<td/>').html(""));
+                            } else if (other == "Get User Contact") {
+                                row.append($('<td/>').html(""));
+                                row.append($('<td/>').html(other));
+                                //row.append($('<td/>').html(""));
+                                // } else if (other == "Get Feedback") {
+                                //     row.append($('<td/>').html(""));
+                                //     row.append($('<td/>').html(""));
+                                //     row.append($('<td/>').html(other));
+                            } else {
+                                row.append($('<td/>').html(""));
+                                row.append($('<td/>').html(""));
+                                //row.append($('<td/>').html(""));
+                            }
                             $('#response-management-table').append(row)
                             try {
                                 var btn = $('<button onclick="deletefunction(\'' + delete_key + '\')"/>').addClass("btn btn-primary btn-sm").text("Delete");
-                                var bt = $('<button onclick="editfunction(\'' + edit_key + '\',\'' + response + '\',\'' + bullets + '\',\'' + visitpage + '\')"/>').addClass("btn btn-primary btn-sm").text("Edit");
+                                var bt = $('<button onclick="editfunction(this)"/>').addClass("btn btn-primary btn-sm").text("Edit");
                                 row.append($('<td/>').append(btn, "\t", bt));
                                 $("#response-management-table").append(row);
                             } catch {}
@@ -321,12 +370,24 @@
     function savefunction() {
         $("#processing").show();
         var data = new FormData();
+        var other = "";
+        if ($("#iswelcome").is(":checked"))
+            other = "Welcome Message";
+
+        if ($("#getusercontact").is(":checked"))
+            other = "Get User Contact";
+
+        // if ($("#getfeedback").is(":checked"))
+        //     other = "Get Feedback";
+
+        data.append('other', other);
         data.append('domain_input', $("#domain_rm").val());
         data.append('cust_id_input', $("#Customer_id_rm").val());
         data.append('intent_input', $("#intent_rm").val());
         data.append('response_input', $("#response_rm").val());
         data.append('bullets_input', $("#bullets_rm").val());
         data.append('visit_page_input', $("#visit_page_rm").val());
+        data.append('image_url', $("#image_url").val());
         data.append('language_input', $("#language_rm").val());
         $.ajax({
             type: 'POST',
@@ -344,7 +405,11 @@
                 $('#response_rm').val('');
                 $('#bullets_rm').val('');
                 $('#visit_page_rm').val('');
+                $('#image_url').val('');
 
+                $('#iswelcome').prop('checked', false);
+                $('#getusercontact').prop('checked', false);
+                // $('#getfeedback').prop('checked', false);
             }
         });
 
@@ -354,11 +419,34 @@
 </script>
 
 <script>
-    function editfunction(edit_key, response, bullets, visitpage) {
+    function editfunction(el) {
+
+        var currentRow = $(el).closest("tr");
+
+        edit_key = currentRow.find("td:eq(1)").text();
+        response = currentRow.find("td:eq(2)").text();
+        bullets = currentRow.find("td:eq(3)").text();
+        visitpage = currentRow.find("td:eq(4)").text();
+        image = currentRow.find("td:eq(5)").text();
+        otherwelcome = currentRow.find("td:eq(6)").text();
+        othergetuser = currentRow.find("td:eq(7)").text();
+        // othergetfeedback = currentRow.find("td:eq(7)").text();
+
+        if (otherwelcome != "") {
+            $('#iswelcome').prop('checked', true);
+        }
+        if (othergetuser != "") {
+            $('#getusercontact').prop('checked', true);
+        }
+        // if (othergetfeedback != "") {
+        //     $('#getfeedback').prop('checked', true);
+        // }
+
         $('#intent_rm').val(edit_key)
         $('#response_rm').val(response)
         $('#bullets_rm').val(bullets)
         $('#visit_page_rm').val(visitpage)
+        $('#image_url').val(image)
         $('#intent_rm').attr('disabled', true);
         $('#add_keyword_button').hide();
         $('#change_button').show(200);
@@ -368,12 +456,24 @@
 
     function update() {
         var data = new FormData();
+        var other = "";
+        if ($("#iswelcome").is(":checked"))
+            other = "Welcome Message";
+
+        if ($("#getusercontact").is(":checked"))
+            other = "Get User Contact";
+
+        // if ($("#getfeedback").is(":checked"))
+        //     other = "Get Feedback";
+
+        data.append('other', other);
         data.append('domain_input', $("#domain_rm").val());
         data.append('cust_id_input', $("#Customer_id_rm").val());
         data.append('intent_input', $("#intent_rm").val());
         data.append('response_input', $("#response_rm").val());
         data.append('bullets_input', $("#bullets_rm").val());
         data.append('visit_page_input', $("#visit_page_rm").val());
+        data.append('image_url', $("#image_url").val());
         data.append('language_input', $("#language_rm").val());
         $.ajax({
             type: 'POST',
@@ -390,6 +490,10 @@
                 $('#response_rm').val('');
                 $('#bullets_rm').val('');
                 $('#visit_page_rm').val('');
+                $('#image_url').val('');
+                $('#iswelcome').prop('checked', false);
+                $('#getusercontact').prop('checked', false);
+                // $('#getfeedback').prop('checked', false);
                 $('#intent_rm').attr('disabled', false);
                 $('#add_keyword_button').show();
                 $('#change_button').hide();
@@ -401,9 +505,6 @@
         });
     }
 </script>
-
-
-
 </body>
 
 </html>

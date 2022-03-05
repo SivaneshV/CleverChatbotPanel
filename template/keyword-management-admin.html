@@ -41,7 +41,7 @@
       </select>
                                 </div>
                                 <div class="col-4">
-                                    <label for="intent_km">Intent</label>
+                                    <label for="intent_km">Topic</label>
                                     <select type="text" class="custom-select form-control-border" name="intent_km" id="intent_km">
       <option value=""></option>
       </select>
@@ -93,7 +93,7 @@
     </section>
 </div>
 <script>
-    var keyword='';
+    var keyword = '';
     $.ajaxSetup({
         headers: {
             "X-CSRFToken": '{{csrf_token}}'
@@ -185,7 +185,7 @@
 
                 data = $.parseJSON(data);
                 $("#intent_km").find('option').remove();
-                $("#intent_km").append('<option value="--Select Intent--">--Select Intent--</option>');
+                $("#intent_km").append('<option value="--Select Topic--">--Select Topic--</option>');
                 $.each(data, function(index, value) {
                     $("#intent_km").append('<option value="' + value + '">' + value + '</option>');
                 });
@@ -201,7 +201,7 @@
 </script>
 
 <script>
-    function change(){
+    function change() {
         $("#processing").show();
         $('#keyword').val('');
         $('#edit_keyword').hide();
@@ -253,7 +253,7 @@
 
                         data = $.parseJSON(data);
                         $("#intent_km").find('option').remove();
-                        $("#intent_km").append('<option value="--Select Intent--">--Select Intent--</option>');
+                        $("#intent_km").append('<option value="--Select Topic--">--Select Topic--</option>');
                         $.each(data, function(index, value) {
                             $("#intent_km").append('<option value="' + value + '">' + value + '</option>');
                         });
@@ -277,14 +277,13 @@
 
 <script>
     function save_button() {
-        if (($("#language_km").val() == "--select Language--") || ($("#domain_km").val() == "--Select Domain--") || ($("#Customer_id_km").val() == "--Select Customer ID--") || ($("#intent_km").val() == "--Select Intent--")) {
+        if (($("#language_km").val() == "--select Language--") || ($("#domain_km").val() == "--Select Domain--") || ($("#Customer_id_km").val() == "--Select Customer ID--") || ($("#intent_km").val() == "--Select Topic--")) {
 
             $("#keyword-management-table").empty();
             var row = $("<tr/>");
             row.append($('<td colspan="7" style="text-align:center" />').html('No Records Found.'));
             $("#keyword-management-table").append(row);
-            }
-        else {
+        } else {
             $("#full_table_km").show();
             $("#processing").show();
             var data = new FormData();
@@ -316,7 +315,7 @@
                             try {
                                 var btn = $('<button onclick="deletefunction(\'' + delete_key + '\')"/>').addClass("btn btn-primary btn-sm").text("Delete");
                                 var bt = $('<button onclick="editfunction(\'' + edit_key + '\')"/>').addClass("btn btn-primary btn-sm").text("Edit");
-                                row.append($('<td/>').append(btn ,"\t",bt));
+                                row.append($('<td/>').append(btn, "\t", bt));
                                 $("#keyword-management-table").append(row);
                             } catch {}
 
@@ -336,7 +335,7 @@
 </script>
 
 <script>
-    function editkeyword(keyword){
+    function editkeyword(keyword) {
         $("#processing").show();
         var data = new FormData();
         data.append('edit_keyword', keyword);
@@ -359,20 +358,19 @@
                 $('#change_button').hide(200);
                 $('#edit_keyword').hide();
                 $("#processing").hide();
-                
+
             }
         });
     }
-    
 </script>
 
 <script>
-    function editfunction (edit_key){
+    function editfunction(edit_key) {
         $('#add_keyword_button').hide();
         $('#change_button').show(200);
         $('#edit_keyword').show();
         $('#keyword').val(edit_key);
-        keyword=edit_key
+        keyword = edit_key
     }
 </script>
 
@@ -411,29 +409,29 @@
     function deletefunction(delete_key) {
         var r = confirm("Are you sure want to delete this keyword ?");
         if (r == true) {
-        $("#processing").show();
-        var data = new FormData();
-        data.append('domain_input', $("#domain_km").val());
-        data.append('cust_id_input', $("#Customer_id_km").val());
-        data.append('intent_input', $("#intent_km").val());
-        data.append('Keyword_delete', delete_key);
-        data.append('language_input', $("#language_km").val());
-        $.ajax({
-            type: 'POST',
-            enctype: 'multipart/form-data',
-            url: '/delete_keyword_json',
-            processData: false,
-            cache: false,
-            timeout: 800000,
-            contentType: false,
-            data: data,
-            success: function(data) {
+            $("#processing").show();
+            var data = new FormData();
+            data.append('domain_input', $("#domain_km").val());
+            data.append('cust_id_input', $("#Customer_id_km").val());
+            data.append('intent_input', $("#intent_km").val());
+            data.append('Keyword_delete', delete_key);
+            data.append('language_input', $("#language_km").val());
+            $.ajax({
+                type: 'POST',
+                enctype: 'multipart/form-data',
+                url: '/delete_keyword_json',
+                processData: false,
+                cache: false,
+                timeout: 800000,
+                contentType: false,
+                data: data,
+                success: function(data) {
 
-                $("#processing").hide();
-                save_button()
+                    $("#processing").hide();
+                    save_button()
 
-            }
-        });
+                }
+            });
         }
     }
 </script>

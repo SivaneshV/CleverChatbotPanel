@@ -134,8 +134,6 @@ def create_app():
         intent=db_proxy.get_response_management_table()
         return intent.to_json(orient="index")
 
-
-
     @application.route('/get_keyword_management_intent', methods=['GET', 'POST'])
     def get_keyword_management_intent():
         intent=db_proxy.get_keyword_management_intent()
@@ -362,30 +360,32 @@ def create_app():
             return unauthorized_msg
             pass
 
-        history = get_history.History()
-        feedback = request.headers.get('feedback')
+        #history = get_history.History()
+        #feedback = request.headers.get('feedback')
         disp_t = request.form.get('disp_t')
-        UIProtocolHostName = request.form.get('UIProtocolHostName')
-        uid = request.args['uid']
+        # UIProtocolHostName = request.form.get('UIProtocolHostName')
+        # uid = request.args['uid']
 
-        user_chat = "<p>" + feedback + "</p>"
+        # user_chat = "<p>" + feedback + "</p>"
         
-        cur_response = ''
-        if feedback.lower() == "yes":
-            cur_response = cur_response + '<p>How may I help you?</p>'
-        else:
-            cur_response = cur_response + "<p>Thank you! I'm so glad I could help.</p>"
+        # cur_response = ''
+        # if feedback.lower() == "yes":
+        #     cur_response = cur_response + '<p>How may I help you?</p>'
+        # else:
+        #     cur_response = cur_response + "<p>Thank you! I'm so glad I could help.</p>"
 
-        history.check_update_history(uid, user_chat, cur_response, disp_t)
+        # history.check_update_history(uid, user_chat, cur_response, disp_t)
 
-        IsLast = ""
-        if "I'm so glad I could help" in cur_response:
-            IsLast = "true"
+        # IsLast = ""
+        # if "I'm so glad I could help" in cur_response:
+        #     IsLast = "true"
 
-        response = {
-            "chats": [{"message": cur_response, "who": "bot", "time": datetime.datetime.now().strftime(chat_msg_time_format), "display_time": disp_t, "is_last": IsLast}],
-            "uid": uid
-        }
+        # response = {
+        #     "chats": [{"message": cur_response, "who": "bot", "time": datetime.datetime.now().strftime(chat_msg_time_format), "display_time": disp_t, "is_last": IsLast}],
+        #     "uid": uid
+        # }
+
+        response = geneset.generate_feedback(disp_t)
 
         return response
         
@@ -490,14 +490,17 @@ def create_app():
             general_intent_json_path = get_general_intent_json_path()
             intent_json_path = get_intent_json_path()
             chatbotname = get_chatbot_name()
+            Lang = request.headers.get("Lang")
+            print(user_chat)
             
-            res_json = finder.find_response(user_chat, corpus_path, general_intent_json_path, intent_json_path, chatbotname, is_recommend)
+            res_json = finder.find_response(user_chat, corpus_path, general_intent_json_path, intent_json_path, chatbotname, Lang, is_recommend)
             
-            cur_response = geneset.generate_response(res_json, UIProtocolHostName)
+            cur_response = geneset.generate_response(res_json, UIProtocolHostName, Lang)
             
             uid = history.check_generate_uid(uid)
             
-            history.check_update_history(uid, user_message_formatted, cur_response, disp_t)
+            if 'cb_contact_name' not in cur_response:
+                history.check_update_history(uid, user_message_formatted, cur_response, disp_t)
             
             seperate_response = ""
 
@@ -549,8 +552,11 @@ def create_app():
         Domain = EnDe.decode(Domain)
         Cust_Id = EnDe.decode(Cust_Id)
 
+        corpus_path = get_corpus_path()
+        Lang = request.headers.get("Lang")
+
         uid = history.check_generate_uid(uid)
-        response = history.get_history_alone(uid, finder, geneset, disp_t, UIProtocolHostName, Domain, Cust_Id)
+        response = history.get_history_alone(uid, finder, geneset, disp_t, UIProtocolHostName, Domain, Cust_Id, corpus_path, Lang)
         
         return response
 
@@ -649,6 +655,36 @@ def create_app():
         status = db_proxy.get_IsActiveCust(Domain, Cust_Id)
 
         return status
+
+    @application.route('/SendContactDetails', methods=['GET', 'POST'])
+    @cross_origin()
+    def SendContactDetails():
+        Domain = request.headers.get("Domain")
+        Cust_Id = request.headers.get("WhoIs")
+        Lang = request.headers.get("Lang")
+        contact_name = request.form.get('contact_name')
+        contact_email = request.form.get('contact_email')
+        contact_number = request.form.get('contact_number')
+        disp_t = request.form.get('disp_t')
+        uid = request.args['uid']
+
+        Domain = EnDe.decode(Domain)
+        Cust_Id = EnDe.decode(Cust_Id)
+
+        res = db_proxy.send_contact(Domain, Cust_Id, contact_name, contact_email, contact_number)
+        ctrl = ""
+
+        if Lang == "English":
+            ctrl = geneset.generate_plain_text("Thank you for connecting with us. We will get back to you.<br>Is there anything else you are looking for ?", disp_t)
+        else:
+            ctrl = geneset.generate_plain_text("எங்களுடன் இணைந்ததற்கு நன்றி. நாங்கள் உங்களை தொடர்புகொள்வோம்.<br>வேறு ஏதாவது கேட்க விரும்புகிறீர்களா ?", disp_t)
+
+        response = {
+                "chats": [{"message": ctrl, "who": "bot", "time": datetime.datetime.now().strftime(chat_msg_time_format), "display_time": disp_t, "seperate_response": "", "is_last": "", 'is_general': ""}],
+                "uid": uid
+            }
+
+        return response
         
 
     def get_chatbot_name():
@@ -689,7 +725,7 @@ def create_app():
         if Lang.lower() == "english":
             return root_path + "General_Intent.json"
         else:
-            return root_path + "General_Intent_" + Lang + ".xlsx"
+            return root_path + "General_Intent_" + Lang + ".json"
     
     def get_intent_json_path():
         Lang = request.headers.get("Lang")
@@ -699,7 +735,7 @@ def create_app():
         if Lang.lower() == "english":
             return root_path + "Intent.json"
         else:
-            return root_path + "Intent_" + Lang + ".xlsx"
+            return root_path + "Intent_" + Lang + ".json"
 
 
     # if __name__ == "__main__":

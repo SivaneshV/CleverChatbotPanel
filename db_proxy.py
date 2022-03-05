@@ -1,6 +1,4 @@
 import os,json
-from textwrap import indent
-from tracemalloc import DomainFilter
 import pyodbc
 from distutils.dir_util import copy_tree
 import numpy as np
@@ -8,25 +6,29 @@ import pandas as pd
 import pwd_gen
 import mail
 from flask import request,session
+import mysql.connector
+
 default_path="./Working_dir"
 intent_file="Intent.json"
 corpus="Corpus.xlsx"
 corpus_ta="Corpus_ta.xlsx"
 intent_file_ta="Intent_ta.json"
 
-conn = pyodbc.connect('Driver={SQL Server Native Client 11.0};Server=103.102.234.23;Database=Chatbot_Panel;uid=CB_Chatbot;pwd=Brainy123$;')
+conn = mysql.connector.connect(host="localhost",user="root",passwd="Brainy123$",port='3306',database="chatbot_panel")
+#conn = pyodbc.connect('Driver={SQL Server Native Client 11.0};Server=103.102.234.23;Database=Chatbot_Panel;uid=CB_Chatbot;pwd=Brainy123$;')
+#conn = pyodbc.connect('Driver={SQL Server Native Client 11.0};Server=localhost;Database=Chatbot_Panel;Trusted_Connection=yes;')
 
 cursor=conn.cursor()
 
 def get_customer_id_verification(cust_id, domain):
-    user = pd.read_sql_query("Select * from [dbo].[ChatBot_Panel] Where Customer_ID='"+cust_id+"' and Domain='"+domain+"' and Status='Active'", conn)
+    user = pd.read_sql_query("Select * from ChatBot_Panel Where Customer_ID='"+cust_id+"' and Domain='"+domain+"' and Status='Active';", conn)
     if user.empty:
         return False
     else:
         return True
 
 def check_user(email, password):
-    user_check="Select * from [dbo].[Users] Where Email='"+email+"' and password='"+password+"' and Status='Active'"
+    user_check="Select * from Users Where Email='"+email+"' and password='"+password+"' and Status='Active';"
     cursor.execute(user_check)
     value=cursor.fetchall()
     if len(value) > 0:
@@ -43,13 +45,13 @@ def check_user(email, password):
         return "","","",""
  
 def get_domain():
-    Domain = pd.read_sql_query("Select distinct Domain from [dbo].[ChatBot_Panel] where Status='Active'", conn)
+    Domain = pd.read_sql_query("Select distinct Domain from ChatBot_Panel where Status='Active';", conn)
     Domain = list(filter(lambda x: str(x) != '', Domain['Domain'].tolist()))
     Domain=sorted(Domain)
     return Domain
 
 def get_Customer_ID():
-    Customer_ID = pd.read_sql_query("Select CusId from [dbo].[Customers] where Status='Active'", conn)
+    Customer_ID = pd.read_sql_query("Select CusId from Customers where Status='Active';", conn)
     Customer_ID = list(filter(lambda x: str(x) != '', Customer_ID['CusId'].tolist()))
     return Customer_ID
 
@@ -67,7 +69,8 @@ def get_languages():
     if request.method=="POST":
         domain=request.form['domain_input']
         cust_id=request.form['cust_id_input']
-        Language = pd.read_sql_query("Select * from [dbo].[Chatbot_Customer_Languages] Where Domain='"+domain+"' and Customer_ID='"+cust_id+"' and Status='Active'", conn)
+        query = "Select * from Chatbot_Customer_Languages Where Domain='"+domain+"' and Customer_ID='"+cust_id+"' and Status='Active';"
+        Language = pd.read_sql_query(query, conn)
         Language = list(filter(lambda x: str(x) != '', Language['Language'].tolist()))
         Language=sorted(Language)
         return Language
@@ -77,7 +80,7 @@ def create_folder():
     dir_path="./Working_dir"
     if request.method=="POST":
         name=request.form["domain"]
-        welcome=request.form["welcome"]
+        #welcome=request.form["welcome"]
         customer_id=request.form['cust_id']
         botname=request.form['botname']
         theme_color=request.form['theme_color']
@@ -90,7 +93,8 @@ def create_folder():
                     new_path=os.path.join(template_path,folder_name)
                     copy_tree(new_path, path_2)
                     cur=conn.cursor()
-                    cur.execute("insert into ChatBot_Panel (ChatbotName,WelcomeMessage,Domain,Customer_ID,ColorCode) values (?,?,?,?,?)",(botname,welcome,name,customer_id,theme_color))
+                    # cur.execute("insert into ChatBot_Panel (ChatbotName,WelcomeMessage,Domain,Customer_ID,ColorCode) values (?,?,?,?,?);",(botname,welcome,name,customer_id,theme_color))
+                    cur.execute("insert into ChatBot_Panel (ChatbotName,Domain,Customer_ID,ColorCode) values (?,?,?,?,?);",(botname,name,customer_id,theme_color))
                     conn.commit()
                     cur.close()
 
@@ -102,8 +106,8 @@ def create_customer():
         password=request.form['createpassword']
         if customer_id != "" and user_type!="" and new_mail_id!="":
             cur=conn.cursor()
-            cur.execute("insert into Customers (CusId) values (?)",(customer_id))
-            cur.execute("insert into Users (Email,UserType,Cusid,password,IsFirstLogin) values (?,?,?,?,?)",(new_mail_id,user_type,customer_id,password,'Yes'))
+            cur.execute("insert into Customers (CusId) values (?);",(customer_id))
+            cur.execute("insert into Users (Email,UserType,Cusid,password,IsFirstLogin) values (?,?,?,?,?);",(new_mail_id,user_type,customer_id,password,'Yes'))
             conn.commit()
             cur.close()
       
@@ -115,6 +119,7 @@ def get_intent_json():
         language=request.form['language_input']
         if language != "--Select Language--":
             if language=="English":
+                print(os.path.join(path,intent_file))
                 with open (os.path.join(path,intent_file),'r') as f:
                     data=json.load(f)
                     for x in data['data']:
@@ -195,17 +200,19 @@ def add_keyword_json():
                                     pattern.append(keyword)
                                     file = open(os.path.join(path,intent_file_other_language),"w",encoding="utf8")
                                     json.dump(data, file,ensure_ascii=False,indent=4)
+        id=0                            
         user_id=session['userid']
         Description="keyword added using keyword management"
-        chatbot_id ="Select ChatBot_ID from [dbo].[ChatBot_Panel] Where Domain='"+domain+"' and Customer_ID='"+cust_id+"' and Status='Active'"
+        chatbot_id ="Select ChatBot_ID from ChatBot_Panel Where Domain='"+domain+"' and Customer_ID='"+cust_id+"' and Status='Active';"
         cur=conn.cursor()
         cur.execute(chatbot_id)
         value=cur.fetchall()
         for val in value:
             id=val[0]
-        cur.execute("insert into ChatBot_Audit (ChatBot_ID,User_ID,Description) values (?,?,?)",(id,user_id,Description))
         conn.commit()
         cur.close()
+
+        audit_log(int(id), int(user_id), Description)
     
 def get_keyword_management_intent():
     path=get_file_path()
@@ -269,17 +276,21 @@ def add_keyword_json():
                                     pattern.append(keyword)
                                     file = open(os.path.join(path,intent_file_other_language),"w",encoding="utf8")
                                     json.dump(data, file,ensure_ascii=False,indent=4)
+        id=0
         user_id=session['userid']
         Description="keyword added using keyword management"
-        chatbot_id ="Select ChatBot_ID from [dbo].[ChatBot_Panel] Where Domain='"+domain+"' and Customer_ID='"+cust_id+"' and Status='Active'"
+        chatbot_id ="Select ChatBot_ID from ChatBot_Panel Where Domain='"+domain+"' and Customer_ID='"+cust_id+"' and Status='Active';"
         cur=conn.cursor()
         cur.execute(chatbot_id)
         value=cur.fetchall()
         for val in value:
             id=val[0]
-        cur.execute("insert into ChatBot_Audit (ChatBot_ID,User_ID,Description) values (?,?,?)",(id,user_id,Description))
+        #cur.execute("insert into ChatBot_Audit (ChatBot_ID,User_ID,Description) values ("+id+","+user_id+",'"+Description+"');")
         conn.commit()
         cur.close()
+
+        
+        audit_log(int(id), int(user_id), Description)
     
 def delete_corpus_details():
     path=get_file_path()
@@ -293,7 +304,7 @@ def delete_corpus_details():
             if language=="English":
                 df=pd.read_excel(os.path.join(path,corpus),index_col="Sub Functional Area", engine='openpyxl')
                 df.drop(del_word,inplace=True)
-                df.to_excel(os.path.join(path,corpus))
+                df.to_excel(os.path.join(path,corpus), index = False)
                 with open (os.path.join(path,intent_file)) as f:
                     data=json.load(f)
                     new_data = [x for x in data['data'] if x['Intent'] != del_word]
@@ -305,26 +316,26 @@ def delete_corpus_details():
                 corpus_other_language="Corpus_"+language+".xlsx"
                 df=pd.read_excel(os.path.join(path,corpus_other_language),index_col="Sub Functional Area", engine='openpyxl')
                 df.drop(del_word,inplace=True)
-                df.to_excel(os.path.join(path,corpus_other_language))
+                df.to_excel(os.path.join(path,corpus_other_language), index = False)
                 with open (os.path.join(path,intent_file_other_language),encoding="utf8") as f:
                     data=json.load(f)
                     new_data = [x for x in data['data'] if x['Intent'] != del_word]
                     new_data = {'data':new_data}
                     file = open(os.path.join(path,intent_file_other_language), "w",encoding="utf8")
                     json.dump(new_data,file,ensure_ascii=False,indent=4)
-                
+        id=0
         Description="corpus details deleted using response Management"
         user_id=session['userid']
-        chatbot_id ="Select ChatBot_ID from [dbo].[ChatBot_Panel] Where Domain='"+domain+"' and Customer_ID='"+cust_id+"' and Status='Active'"
+        chatbot_id ="Select ChatBot_ID from ChatBot_Panel Where Domain='"+domain+"' and Customer_ID='"+cust_id+"' and Status='Active';"
         cur=conn.cursor()
         cur.execute(chatbot_id)
         value=cur.fetchall()
         for val in value:
             id=val[0]
-        cur.execute("insert into ChatBot_Audit (ChatBot_ID,User_ID,Description) values (?,?,?)",(id,user_id,Description))
+        #cur.execute("insert into ChatBot_Audit (ChatBot_ID,User_ID,Description) values ("+id+","+user_id+",'"+Description+"');")
         conn.commit()
         cur.close()
-
+        audit_log(int(id), int(user_id), Description)
 
 def view_chatbot_table():
     botname_list=[]
@@ -335,7 +346,7 @@ def view_chatbot_table():
     status_list=[]
     created_on_list=[]
     Chatbot_ID_list=[]
-    cursor.execute("select ChatbotName,WelcomeMessage,Domain,Customer_ID,ColorCode,Status,Created_on,Chatbot_ID from [dbo].[ChatBot_Panel] order by Created_on desc") 
+    cursor.execute("select ChatbotName,WelcomeMessage,Domain,Customer_ID,ColorCode,Status,Created_on,Chatbot_ID from ChatBot_Panel order by Created_on desc;") 
     data = cursor.fetchall()
     for x in data:
         botname=x[0]
@@ -398,7 +409,7 @@ def set_new_password(email):
     mail.SendMail(email, "Password has been reseted for CleverBrain Chatbot Panel", body, [current_path + "\static\dist\img\logotextalt.png"])
 
     cur=conn.cursor()
-    cur.execute("update [dbo].[Users] set password=? , IsFirstLogin='Yes' where Email=?",(pwd),(email))
+    cur.execute("update Users set password=? , IsFirstLogin='Yes' where Email=?;",(pwd),(email))
     conn.commit()
     cur.close()
 
@@ -411,7 +422,7 @@ def view_customer_table():
     status_list=[]
     created_on_list=[]
     contact_list=[]
-    cursor.execute("select C.CusId,U.Email,U.UserType,C.Status,C.Created_on,U.Contact from [dbo].[Customers] C Join [dbo].[Users] U On C.CusId = U.CusId order by Created_on desc") 
+    cursor.execute("select C.CusId,U.Email,U.UserType,C.Status,C.Created_on,U.Contact from Customers C Join Users U On C.CusId = U.CusId order by Created_on desc;") 
     data = cursor.fetchall()
     for x in data:
         cust_id=x[0]
@@ -445,14 +456,14 @@ def change_password_in_sql():
         password=request.form['password']
         user_id=session['userid']
         cur=conn.cursor()
-        cur.execute("update [dbo].[Users] set password=? , IsFirstLogin='No' where UserID=?",(password),(user_id))
+        cur.execute("update Users set password='"+password+"', IsFirstLogin='No' where UserID='"+user_id+"';")
         conn.commit()
         cur.close()
 
 def get_chatbot_name(domain, cust_id):
     chatbotname = ''
     cursor=conn.cursor()
-    cursor.execute("Select ChatbotName from [dbo].[ChatBot_Panel] Where Domain=? and Customer_ID=?",(domain),(cust_id))
+    cursor.execute("Select ChatbotName from ChatBot_Panel Where Domain='"+domain+"' and Customer_ID='"+cust_id+"';")
     value=cursor.fetchall()
     if len(value) > 0:
         for val in value:
@@ -465,7 +476,7 @@ def get_chatbot_name(domain, cust_id):
 def get_IsActiveCust(domain, cust_id):
     Status = ''
     cursor=conn.cursor()
-    cursor.execute("Select Status from [dbo].[ChatBot_Panel] Where Domain=? and Customer_ID=?",(domain),(cust_id))
+    cursor.execute("Select Status from ChatBot_Panel Where Domain='"+domain+"' and Customer_ID='"+cust_id+"';")
     value=cursor.fetchall()
     if len(value) > 0:
         for val in value:
@@ -478,7 +489,7 @@ def get_IsActiveCust(domain, cust_id):
 def change_bot_status(botId, status):
     Status = ''
     cursor=conn.cursor()
-    cursor.execute("Update [dbo].[ChatBot_Panel] set Status='"+status+"' Where Chatbot_Id=?",(botId))
+    cursor.execute("Update ChatBot_Panel set Status='"+status+"' Where Chatbot_Id='"+botId+"';")
     Status = 'Updated'
     #value=cursor.fetchall()
     # if len(value) > 0:
@@ -494,74 +505,131 @@ def add_corpus_details():
     path=get_file_path()
     if request.method=="POST":
         domain=request.form['domain_input']
+        other=request.form['other']
         cust_id=request.form['cust_id_input']
         intent=request.form['intent_input']
         response=request.form['response_input']
         bullet=request.form['bullets_input']
         visit_page=request.form['visit_page_input']
+        image_url=request.form['image_url']
         language=request.form['language_input']
         if language != "--Select Language--":
-            if (intent and (response or bullet or visit_page)) !="":
+            if (intent or response or bullet or visit_page or other) !="":
                 if language=="English":
                     df=pd.read_excel(os.path.join(path,corpus), engine='openpyxl')
                     new_data={
+                        "Functional Area":other,
                         "Sub Functional Area":intent,
                         "Response":response,
                         "Bullets":bullet,
-                        "Visit Page":visit_page
+                        "Visit Page":visit_page,
+                        "Image URL":image_url
                     }
-                    new=df.append(new_data, ignore_index= True)
-                    new.to_excel(os.path.join(path,corpus))
+                    new=df.append(new_data, ignore_index=True)
+                    new.to_excel(os.path.join(path,corpus), index = False)
                     with open (os.path.join(path,intent_file),'r') as f:
-                        data=json.load(f)
-                        new_intent={
-                            "Intent":"",
-                            "patterns":[],
-                            "responses":[intent]
+                        det = f.readlines()
+                        if len(det) == 0:
+                            new_intent={
+                                "data": [
+                                    {
+                                        "Intent":"",
+                                        "patterns":[],
+                                        "responses":[intent]
+                                    }
+                                ]
                             }
-                        data['data'].append(new_intent)
-                        file = open(os.path.join(path,intent_file), "w")
-                        json.dump(data, file,indent=4)
+                            
+                            with open (os.path.join(path,intent_file),'w') as fl:
+                            #file = open(os.path.join(path,intent_file), "w")
+                                json.dump(new_intent, fl)
+                        else:
+                            with open (os.path.join(path,intent_file),'r') as f:
+                                data=json.load(f)
+                                new_intent={
+                                    "Intent":"",
+                                    "patterns":[],
+                                    "responses":[intent]
+                                    }
+                                data['data'].append(new_intent)
+                                with open (os.path.join(path,intent_file),'w') as fl:
+                                #file = open(os.path.join(path,intent_file), "w")
+                                    json.dump(data, fl)
                 else:
                     intent_file_other_language="Intent_"+language+".json"
                     corpus_other_language="Corpus_"+language+".xlsx"
                     df=pd.read_excel(os.path.join(path,corpus_other_language), engine='openpyxl')
                     new_data={
+                        "Functional Area":other,
                         "Sub Functional Area":intent,
                         "Response":response,
                         "Bullets":bullet,
-                        "Visit Page":visit_page
+                        "Visit Page":visit_page,
+                        "Image URL":image_url
                         }
-                    new=df.append(new_data, ignore_index= True)
-                    new.to_excel(os.path.join(path,corpus_other_language))
-                    with open (os.path.join(path,intent_file_other_language),encoding="utf8") as f:
-                        data=json.load(f)
-                        new_intent={
-                            "Intent":"",
-                            "patterns":[],
-                            "responses":[intent]
+                    new=df.append(new_data, ignore_index=True)
+                    new.to_excel(os.path.join(path,corpus_other_language), index = False)
+
+                    with open (os.path.join(path,intent_file_other_language),'r') as f:
+                        det = f.readlines()
+                        if len(det) == 0:
+                            new_intent={
+                                "data": [
+                                    {
+                                        "Intent":"",
+                                        "patterns":[],
+                                        "responses":[intent]
+                                    }
+                                ]
                             }
-                        data['data'].append(new_intent)
-                        file = open(os.path.join(path,intent_file_other_language), "w",encoding="utf8")
-                        json.dump(data,file,ensure_ascii=False,indent=4)
-                        
+                            
+                            with open (os.path.join(path,intent_file_other_language),'w') as fl:
+                            #file = open(os.path.join(path,intent_file_other_language), "w")
+                                json.dump(new_intent, fl)
+                        else:
+                            with open (os.path.join(path,intent_file_other_language),'r') as f:
+                                data=json.load(f)
+                                new_intent={
+                                    "Intent":"",
+                                    "patterns":[],
+                                    "responses":[intent]
+                                    }
+                                data['data'].append(new_intent)
+                                with open (os.path.join(path,intent_file_other_language),'w') as fl:
+                                #file = open(os.path.join(path,intent_file_other_language), "w")
+                                    json.dump(data, fl)
+
+
+                    # with open (os.path.join(path,intent_file_other_language),encoding="utf8") as f:
+                    #     data=json.load(f)
+                    #     new_intent={
+                    #         "Intent":"",
+                    #         "patterns":[],
+                    #         "responses":[intent]
+                    #         }
+                    #     data['data'].append(new_intent)
+                    #     with open (os.path.join(path,intent_file_other_language),'w',encoding="utf8") as fl:
+                    #     #file = open(os.path.join(path,intent_file_other_language), "w",encoding="utf8")
+                    #         json.dump(data,fl,ensure_ascii=False)
+        id=0            
         Description="corpus details added using response Management"
         user_id=session['userid']
-        chatbot_id ="Select ChatBot_ID from [dbo].[ChatBot_Panel] Where Domain='"+domain+"' and Customer_ID='"+cust_id+"' and Status='Active'"
+        chatbot_id ="Select ChatBot_ID from ChatBot_Panel Where Domain='"+domain+"' and Customer_ID='"+cust_id+"' and Status='Active';"
         cur=conn.cursor()
         cur.execute(chatbot_id)
         value=cur.fetchall()
         for val in value:
             id=val[0]
-        cur.execute("insert into ChatBot_Audit (ChatBot_ID,User_ID,Description) values (?,?,?)",(id,user_id,Description))
         conn.commit()
         cur.close()
+
+        audit_log(int(id), int(user_id), Description)
 
 
 def get_welcome_message(domain, cust_id):
     welcome_message = ''
     cursor=conn.cursor()
-    cursor.execute("Select WelcomeMessage from [dbo].[ChatBot_Panel] Where Domain=? and Customer_ID=? and Status='Active'",(domain),(cust_id))
+    cursor.execute("Select WelcomeMessage from ChatBot_Panel Where Domain='"+domain+"' and Customer_ID='"+cust_id+"' and Status='Active';")
     value=cursor.fetchall()
     if len(value) > 0:
         for val in value:
@@ -575,7 +643,7 @@ def get_welcome_message(domain, cust_id):
 def get_chatbot_theme(domain, cust_id):
     color_code = ''
     cursor=conn.cursor()
-    cursor.execute("Select ColorCode from [dbo].[ChatBot_Panel] Where Domain=? and Customer_ID=? and Status='Active'",(domain),(cust_id))
+    cursor.execute("Select ColorCode from ChatBot_Panel Where Domain='"+domain+"' and Customer_ID='"+cust_id+"' and Status='Active';")
     value=cursor.fetchall()
     if len(value) > 0:
         for val in value:
@@ -594,15 +662,19 @@ def get_response_management_table():
             if language=="English":         
                 df=pd.read_excel(os.path.join(path,corpus), engine='openpyxl')
                 df=df.replace(np.nan,"")
+                corpus_other=df['Functional Area'].tolist()
                 corpus_intent=df['Sub Functional Area'].tolist()
                 corpus_response=df['Response'].tolist()
                 corpus_bullets=df['Bullets'].tolist()
                 corpus_visit_page=df['Visit Page'].tolist()
+                image_url=df['Image URL'].tolist()
                 new_df={
+                    "other":corpus_other,
                     "intent":corpus_intent,
                     "response":corpus_response,
                     "bullets":corpus_bullets,
-                    "visit_page":corpus_visit_page
+                    "visit_page":corpus_visit_page,
+                    "image_url":image_url
                 }
                 input_df=pd.DataFrame(new_df)
                 
@@ -611,15 +683,19 @@ def get_response_management_table():
                 corpus_other_language="Corpus_"+language+".xlsx"
                 df=pd.read_excel(os.path.join(path,corpus_other_language), engine='openpyxl')
                 df=df.replace(np.nan,"")
+                corpus_other=df['Functional Area'].tolist()
                 corpus_intent=df['Sub Functional Area'].tolist()
                 corpus_response=df['Response'].tolist()
                 corpus_bullets=df['Bullets'].tolist()
                 corpus_visit_page=df['Visit Page'].tolist()
+                image_url=df['Image URL'].tolist()
                 new_df={
+                    "other":corpus_other,
                     "intent":corpus_intent,
                     "response":corpus_response,
                     "bullets":corpus_bullets,
-                    "visit_page":corpus_visit_page
+                    "visit_page":corpus_visit_page,
+                    "image_url":image_url
                 }
                 input_df=pd.DataFrame(new_df)
                 
@@ -667,7 +743,7 @@ def edit_manage_customer():
         email=request.form['mail_id']
         contact=request.form['contact']
         cur=conn.cursor()
-        cur.execute("update [dbo].[Users] set Email=?,Contact=? where CusId=?",(email),(contact),(cust_id))
+        cur.execute("update Users set Email=?,Contact=? where CusId=?;",(email),(contact),(cust_id))
         conn.commit()
         cur.close()
 
@@ -680,7 +756,7 @@ def edit_manage_chatbot():
         botname=request.form['botname']
         cust_id=request.form['cust_id']
         cur=conn.cursor()
-        cur.execute("update [dbo].[ChatBot_Panel] set WelcomeMessage=? ,ChatbotName=? ,ColorCode=? where Domain=? and  Customer_ID=?",(welcome),(botname),(color),(domain),(cust_id))
+        cur.execute("update ChatBot_Panel set WelcomeMessage='"+welcome+"' ,ChatbotName='"+botname+"' ,ColorCode='"+color+"' where Domain='"+domain+"' and  Customer_ID='"+cust_id+"';")
         conn.commit()
         cur.close()
 
@@ -688,10 +764,12 @@ def edit_manage_chatbot():
 def edit_response_management():
     path=get_file_path()
     if request.method=="POST":
+        other=request.form['other']
         intent=request.form['intent_input']
         response=request.form['response_input']
         bullet=request.form['bullets_input']
         visit_page=request.form['visit_page_input']
+        image_url=request.form['image_url']
         language=request.form['language_input']
         if language != "--Select Language--":
             if (intent and (response or bullet or visit_page)) !="":
@@ -699,26 +777,30 @@ def edit_response_management():
                     df=pd.read_excel(os.path.join(path,corpus), engine='openpyxl')
                     for index in df.index:
                         if df.loc[index,'Sub Functional Area']==intent:
+                            df.loc[index,'Functional Area'] = other
                             df.loc[index,'Response'] = response
                             df.loc[index,'Bullets'] = bullet
                             df.loc[index,'Visit Page'] = visit_page
-                            df.to_excel(os.path.join(path,corpus))                       
+                            df.loc[index,'Image URL'] = image_url
+                            df.to_excel(os.path.join(path,corpus), index = False)                       
                 else:
                     corpus_other_language="Corpus_"+language+".xlsx"
                     df=pd.read_excel(os.path.join(path,corpus_other_language), engine='openpyxl')
                     for index in df.index:
                         if df.loc[index,'Sub Functional Area']==intent:
+                            df.loc[index,'Functional Area'] = other
                             df.loc[index,'Response'] = response
                             df.loc[index,'Bullets'] = bullet
                             df.loc[index,'Visit Page'] = visit_page
-                            df.to_excel(os.path.join(path,corpus_other_language))
+                            df.loc[index,'Image URL'] = image_url
+                            df.to_excel(os.path.join(path,corpus_other_language), index = False)
                             
 
 def get_languages_by_details(domain, cust_id):
     print(domain, cust_id)
     languages = []
     cursor=conn.cursor()
-    cursor.execute("Select Language from [dbo].[Chatbot_Customer_Languages] Where Domain=? and Customer_ID=? and Status='Active'",(domain),(cust_id))
+    cursor.execute("Select Language from Chatbot_Customer_Languages Where Domain='"+domain+"' and Customer_ID='"+cust_id+"' and Status='Active';")
     value=cursor.fetchall()
     if len(value) > 0:
         for val in value:
@@ -728,3 +810,88 @@ def get_languages_by_details(domain, cust_id):
 
     return languages
     
+def audit_log(id, user_id, Description):
+
+    query = "insert into ChatBot_Audit (ChatBot_ID,User_ID,Description) values ("+str(id)+","+str(user_id)+",'"+Description+"');"
+    
+    print(query)
+    cur=conn.cursor()
+    cur.execute(query)
+    conn.commit()
+    cur.close()
+
+def send_contact(Domain, CustId, contact_name, contact_email, contact_number):
+    cus_email = ''
+    bot_name = ''
+    email_cnt = ''
+    contact_cnt = ''
+    cwd = os.getcwd()
+    current_path = cwd
+
+    user_check="Select * from Users Where CusId='"+CustId+"' and Status='Active';"
+    cursor.execute(user_check)
+    value=cursor.fetchall()
+    if len(value) > 0:
+        for val in value:
+            cus_email=val[1]
+
+    user_check="Select * from chatbot_panel Where Customer_ID='"+CustId+"' and Domain='"+Domain+"' and Status='Active';"
+    cursor.execute(user_check)
+    value=cursor.fetchall()
+    if len(value) > 0:
+        for val in value:
+            bot_name=val[6]
+    
+    if contact_email != "":
+        email_cnt = """<tr>
+            <td>
+            <b>Email:</b>
+            </td>
+            <td>
+            """ + contact_email + """
+            </td>
+        </tr>"""
+
+    if contact_number != "":
+        contact_cnt = """<tr>
+            <td>
+            <b>Contact # :</b>
+            </td>
+            <td>
+            """ + contact_number + """
+            </td>
+        </tr>"""
+
+    body = """
+    <html>
+        <body>
+            <p>
+                Hi,
+            </p>
+            <p>
+                <b>Please find below user's contact details.</b>
+            </p>
+            <p style="text-align: center">
+                <table>
+                    <tr>
+                        <td>
+                        <b>Name:</b>
+                        </td>
+                        <td>"""+contact_name+"""
+                        </td>
+                    </tr>
+                    """+ email_cnt + contact_cnt + """
+                </table>
+            </p>
+            <p>
+                Regards,<br>
+                Support Team<br>
+                Clever Brain Technologies Private Limited<br>
+                <a href="mailto:support@cleverbrain.in">support@cleverbrain.in</a>
+            </p>
+        </body>
+    </html>"""
+
+    mail.SendMail(cus_email, ("User Contact Details from " + bot_name), body, [current_path + "\static\dist\img\logotextalt.png"])
+
+    return "Sent"
