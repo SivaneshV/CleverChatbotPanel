@@ -8,6 +8,6 @@ application.secret_key = 'POC1'
 CORS(application)
 
 
-@application.route('/home')
+@application.route('/')
 def home():
     return render_template('login.html')
