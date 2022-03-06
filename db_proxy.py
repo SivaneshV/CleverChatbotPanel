@@ -1,5 +1,4 @@
 import os,json
-#import pyodbc
 from distutils.dir_util import copy_tree
 import numpy as np
 import pandas as pd
