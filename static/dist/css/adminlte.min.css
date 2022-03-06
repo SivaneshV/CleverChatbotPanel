@@ -33804,7 +33804,7 @@ html.maximized-card {
 .card-body.p-0 .table tfoot>tr>th:first-of-type,
 .card-body.p-0 .table thead>tr>td:first-of-type,
 .card-body.p-0 .table thead>tr>th:first-of-type {
-    padding-left: 1.5rem
+    padding-left: 0.7rem
 }
 
 .card-body.p-0 .table tbody>tr>td:last-of-type,
@@ -33813,7 +33813,7 @@ html.maximized-card {
 .card-body.p-0 .table tfoot>tr>th:last-of-type,
 .card-body.p-0 .table thead>tr>td:last-of-type,
 .card-body.p-0 .table thead>tr>th:last-of-type {
-    padding-right: 1.5rem
+    padding-right: 0.7rem
 }
 
 .table-hover tbody tr.expandable-body:hover {
@@ -53803,4 +53803,14 @@ input:checked+.slider:before {
 
 .slider.round:before {
     border-radius: 50%;
+}
+
+.td-response {
+    width: 100%;
+    word-wrap: break-word;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    border: none;
 }
