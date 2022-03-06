@@ -1,0 +1,359 @@
+{% extends 'layout.html' %} {% block content %}
+
+<!-- Content Wrapper. Contains page content -->
+<div class="content-wrapper">
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1>Manage Language</h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="#">Home</a></li>
+                        <li class="breadcrumb-item active">Manage Language</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+        <!-- /.container-fluid -->
+    </section>
+    <!-- Content Header (Page header) -->
+    <section class="content">
+        <div class="container-fluid">
+            <div class="row">
+                <!-- left column -->
+                <div class="col-md-12">
+                    <!-- general form elements -->
+                    <div class="card card-outline card-primary">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-3">
+                                    <label for="name">Domain</label>
+                                    <select type="text" class="custom-select form-control-border" name="name" id="name">
+                                        <option value="none">Select Domain</option>
+                                        <option value="Pharmacy">Pharmacy</option>
+                                        <option value="Retail">Retail</option>
+                                        <option value="HealthCare">HealthCare</option>
+                                        <option value="CreateYourOwn">Create Your Own</option>
+                                    </select>
+                                    <input class="form-control form-control-border" name="edit_domain" id="edit_domain">
+                                </div>
+                                <div class="col-3">
+                                    <label for="Customer_id_rm">Customer ID</label>
+                                    <!-- <input class="form-control form-control-border" name="customer_id" id="customer_id" placeholder="Enter customer ID"> -->
+                                    <select type="text" class="custom-select form-control-border" name="Customer_id_rm" id="Customer_id_rm">
+                                      <option value=""></option>
+                                    </select>
+                                    <input class="form-control form-control-border" name="edit_id" id="edit_id">
+                                </div>
+                                <div class="col-3">
+                                    <label for="color">Language</label>
+                                    <input class="form-control form-control-border" name="color" id="color" placeholder="Enter language">
+                                </div>
+                                <div class="col-3">
+                                    <br>
+                                    <input id="create_button" type="submit" value="ADD LANGUAGE" class="btn btn-primary" onclick="submitbutton()">
+                                    </input>
+                                    <!-- <input id="update_button" type="submit" value="UPDATE CHATBOT" class="btn btn-primary" onclick="update()">
+                                    <input id="cancel_button" type="submit" value="CANCEL" class="btn btn-secondary" onclick="cancel()"> -->
+                                </div>
+                            </div>
+                            <div>
+                                <h6 id="out-message" style="color: red;"></h6>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="row">
+                <div class="col-12">
+                    <div class="card card-outline card-primary">
+                        <!-- /.card-header -->
+                        <!-- <form action="/View_chatbot" method="POST"> -->
+                        <div class="card-body table-responsive p-0" style="height: 400px;">
+                            <table class="table table-head-fixed text-nowrap">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Domain</th>
+                                        <th>Customer_ID</th>
+                                        <th>Language</th>
+                                        <th>Status</th>
+                                        <th>Created_on</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="view_language_table">
+
+                                    <td colspan="6" style="text-align: center;">No Records Found.</td>
+
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- </form> -->
+                        <!-- /.card-body -->
+                    </div>
+                    <!-- /.card -->
+                </div>
+            </div>
+
+        </div>
+    </section>
+</div>
+<script>
+    function load() {
+        $("#processing").show();
+        $.ajax({
+            type: 'POST',
+            enctype: 'multipart/form-data',
+            url: '/view_language_table',
+            processData: false,
+            cache: false,
+            timeout: 800000,
+            contentType: false,
+            data: {},
+            success: function(data) {
+
+                $('#view_language_table').empty()
+                var data = $.parseJSON(data);
+
+                if (Object.keys(data).length > 0) {
+
+                    for (var i = 0; i < Object.keys(data).length; i++) {
+                        var row = $("<tr/>");
+                        row.append($('<td/>').html(i + 1));
+                        //row.append($('<td/>').html(data[i]["botname"]));
+                        // row.append($('<td/>').html(data[i]["welcome"]));
+                        row.append($('<td/>').html(data[i]["domain"]));
+                        row.append($('<td/>').html(data[i]["customer_id"]));
+                        row.append($('<td/>').html(data[i]["lang"]));
+                        row.append($('<td/>').html(data[i]["status"]));
+                        row.append($('<td/>').html(data[i]["created_on"]));
+                        $('#view_language_table').append(row);
+                        // try {
+                        //     var btn = $('<button onclick="editfunction(this)"/>').addClass("btn btn-primary btn-sm").text("Edit");
+
+                        //     row.append($('<td/>').append(btn));
+                        //     $("#view_customer_table").append(row);
+                        // } catch {}
+                        try {
+                            var isChecked = '';
+                            if (data[i]["status"] == "Active") {
+                                isChecked = 'checked';
+                            }
+                            var lbl = $('<label class="switch"></label>');
+                            var inpt = $('<input type="checkbox" ' + isChecked + ' onchange="change_status(\'' + data[i]["id"] + '\',this)">');
+                            var span = $('<span class="slider round"></span>');
+
+                            lbl.append(inpt);
+                            lbl.append(span);
+
+                            row.append($('<td/>').append(lbl));
+                            $("#view_customer_table").append(row);
+                        } catch {}
+                    }
+                } else {
+                    var row = $("<tr/>");
+                    row.append($('<td colspan=6 style="text-align: center"/>').html("No Records Found."));
+                    $('#view_customer_table').append(row);
+                }
+                $("#processing").hide();
+            }
+        });
+    }
+
+    $(document).ready(function() {
+        var data = new FormData();
+        $('#cancel_button').hide();
+        $('#update_button').hide();
+        $('#edit_id').hide();
+        $('#edit_domain').hide();
+        $.ajax({
+            type: 'POST',
+            url: '/get_Customer_id',
+            contentType: 'application/json',
+            data: {},
+            success: function(data) {
+                data = $.parseJSON(data);
+                $("#Customer_id_rm").find('option').remove();
+                $("#Customer_id_rm").append('<option value="Select Customer ID">Select Customer ID</option>');
+                $.each(data, function(index, value) {
+                    $("#Customer_id_rm").append('<option value="' + value + '">' + value + '</option>');
+                });
+
+                load();
+            },
+            error: function() {
+                $(this).html("error!");
+            }
+        });
+
+    });
+
+    function change_status(botId, isChecked) {
+        $("#processing").show();
+        var data = new FormData();
+        data.append('botId', botId);
+        data.append('status', isChecked.checked);
+        $.ajax({
+            type: 'POST',
+            enctype: 'multipart/form-data',
+            url: '/change_bot_status',
+            processData: false,
+            cache: false,
+            timeout: 800000,
+            contentType: false,
+            data: data,
+            success: function(data) {
+                if (data == "Updated") {
+                    toastr.success('Updated Successfully.');
+                    load();
+                }
+                $("#processing").hide();
+            }
+        });
+    }
+</script>
+<script>
+    $(function() {
+        var Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000
+        });
+    });
+</script>
+
+<script>
+    function rgb2hex(rgb) {
+        if (/^#[0-9A-F]{6}$/i.test(rgb)) return rgb;
+
+        rgb = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+
+        function hex(x) {
+            return ("0" + parseInt(x).toString(16)).slice(-2);
+        }
+        return "#" + hex(rgb[1]) + hex(rgb[2]) + hex(rgb[3]);
+    }
+
+    function editfunction(el) {
+        edit_key = $(el).parents('tr').find("td:eq(4)").text();
+        botname = $(el).parents('tr').find("td:eq(1)").text();
+        // welcome = $(el).parents('tr').find("td:eq(2)").text();
+        domain = $(el).parents('tr').find("td:eq(3)").text();
+        color = rgb2hex($(el).parents('tr').find("td:eq(5)").find("div").css("background-color"));
+
+        $('#create_button').hide();
+        $('#Customer_id_rm').hide();
+        $('#name').hide();
+        $('#edit_id').show();
+        $('#edit_domain').show();
+        $('#cancel_button').show(200);
+        $('#update_button').show(200);
+        $('#edit_id').val(edit_key);
+        $('#botname').val(botname);
+        // $('#welcome').val(welcome);
+        $('#color').val(color);
+        $('#edit_domain').val(domain);
+        $('#edit_domain').attr('disabled', true);
+        $('#edit_id').attr('disabled', true);
+        // $('#Customer_id_rm').attr('disabled', true);
+    }
+</script>
+
+
+<script>
+    function submitbutton() {
+
+        $("#processing").show();
+        var data = new FormData();
+        data.append('domain', $("#name").val());
+        // data.append('welcome', $("#welcome").val());
+        data.append('cust_id', $("#Customer_id_rm").val());
+        data.append('lang', $("#color").val());
+        $.ajax({
+            type: 'POST',
+            enctype: 'multipart/form-data',
+            url: '/add_new_language',
+            processData: false,
+            cache: false,
+            timeout: 800000,
+            contentType: false,
+            data: data,
+            success: function(data) {
+                toastr.success('Created Successfully')
+
+                $('#botname').val('');
+                $('#color').val('');
+
+                load();
+                $("#processing").hide();
+            },
+            error: function(err) {
+                debugger;
+                $(this).html("error!");
+            }
+        });
+
+
+    }
+</script>
+<script>
+    function cancel() {
+        $(document).ready(function() {
+            var data = new FormData();
+            $('#cancel_button').hide(200);
+            $('#update_button').hide(200);
+            $('#create_button').show(200);
+            $('#edit_id').hide();
+            $('#edit_domain').hide();
+            $('#Customer_id_rm').show();
+            $('#name').show();
+            $('#edit_id').val('')
+            $('#botname').val('')
+                // $('#welcome').val('')
+            $('#color').val('')
+            $('#name').attr('disabled', false);
+            $('#edit_id').attr('disabled', false);
+            $('#Customer_id_rm').attr('disabled', false);
+
+            load();
+        });
+    }
+</script>
+
+<script>
+    function update() {
+        $("#processing").show();
+        var data = new FormData();
+        data.append('domain', $("#edit_domain").val());
+        // data.append('welcome', $("#welcome").val());
+        data.append('color', $("#color").val());
+        data.append('botname', $("#botname").val());
+        data.append('cust_id', $("#edit_id").val());
+        $.ajax({
+            type: 'POST',
+            enctype: 'multipart/form-data',
+            url: '/edit_manage_chatbot',
+            processData: false,
+            cache: false,
+            timeout: 800000,
+            contentType: false,
+            data: data,
+            success: function(data) {
+                cancel()
+
+                $("#processing").hide();
+            }
+        });
+    }
+</script>
+
+{% endblock %}
