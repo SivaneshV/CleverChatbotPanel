@@ -1,4 +1,5 @@
 import os,json
+#import pyodbc
 from distutils.dir_util import copy_tree
 import numpy as np
 import pandas as pd
@@ -13,13 +14,10 @@ corpus="Corpus.xlsx"
 corpus_ta="Corpus_ta.xlsx"
 intent_file_ta="Intent_ta.json"
 
-try:
-    conn = mysql.connector.connect(host="chatbot-panel.ckjqe647gpza.us-east-1.rds.amazonaws.com",user="admin",passwd="Cbt2020$",port='3306',database="sys")
-    #conn = mysql.connector.connect(host="localhost",user="root",passwd="Brainy123$",port='3306',database="chatbot_panel")
-    #conn = pyodbc.connect('Driver={SQL Server Native Client 11.0};Server=103.102.234.23;Database=Chatbot_Panel;uid=CB_Chatbot;pwd=Brainy123$;')
-    #conn = pyodbc.connect('Driver={SQL Server Native Client 11.0};Server=localhost;Database=Chatbot_Panel;Trusted_Connection=yes;')
-except:
-    pass
+conn = mysql.connector.connect(host="chatbot-panel.ckjqe647gpza.us-east-1.rds.amazonaws.com",user="admin",passwd="Cbt2020$",port='3306',database="sys")
+#conn = mysql.connector.connect(host="localhost",user="root",passwd="Brainy123$",port='3306',database="chatbot_panel")
+#conn = pyodbc.connect('Driver={SQL Server Native Client 11.0};Server=103.102.234.23;Database=Chatbot_Panel;uid=CB_Chatbot;pwd=Brainy123$;')
+#conn = pyodbc.connect('Driver={SQL Server Native Client 11.0};Server=localhost;Database=Chatbot_Panel;Trusted_Connection=yes;')
 
 #cursor=conn.cursor()
 
@@ -843,14 +841,17 @@ def edit_manage_customer():
 def edit_manage_chatbot():
     if request.method=="POST":
         domain=request.form['domain']
-        welcome=request.form['welcome']
+        #welcome=request.form['welcome']
         color=request.form['color']
         botname=request.form['botname']
         cust_id=request.form['cust_id']
         cur=conn.cursor()
-        cur.execute("update chatbot_panel set WelcomeMessage='"+welcome+"' ,ChatbotName='"+botname+"' ,ColorCode='"+color+"' where Domain='"+domain+"' and  Customer_ID='"+cust_id+"';")
+        qry = "update chatbot_panel set ChatbotName='"+botname+"',ColorCode='"+color+"' where Domain='"+domain+"' and  Customer_ID='"+cust_id+"';"
+        print(qry)
+        cur.execute(qry)
         conn.commit()
         cur.close()
+        return "Updated"
 
 
 def edit_response_management():
