@@ -10,7 +10,7 @@ from flask_cors import CORS, cross_origin
 import auth
 import json
 from flask import Flask, request,render_template,session
-import db_proxy
+#import db_proxy
 import json
 import EnDe
 
@@ -137,46 +137,55 @@ def response_management():
 
 @application.route('/get_domain', methods=['GET', 'POST'])
 def get_domain():
+    import db_proxy
     domain = db_proxy.get_domain()
     return json.dumps(domain)
 
 @application.route('/get_intent_json', methods=['GET', 'POST'])
 def get_intent_json():
+    import db_proxy
     intent=db_proxy.get_intent_json()
     return json.dumps(intent)
 
 @application.route('/get_response_management_table', methods=['GET', 'POST'])
 def get_response_management_table():
+    import db_proxy
     intent=db_proxy.get_response_management_table()
     return intent.to_json(orient="index")
 
 @application.route('/get_keyword_management_intent', methods=['GET', 'POST'])
 def get_keyword_management_intent():
+    import db_proxy
     intent=db_proxy.get_keyword_management_intent()
     return json.dumps(intent)
 
 @application.route('/edit_keyword_management', methods=['GET', 'POST'])
 def edit_keyword_management():
+    import db_proxy
     intent=db_proxy.edit_keyword_management()
     return json.dumps(intent)
 
 @application.route('/edit_response_management', methods=['GET', 'POST'])
 def edit_response_management():
+    import db_proxy
     intent=db_proxy.edit_response_management()
     return json.dumps(intent)
 
 @application.route('/edit_manage_customer', methods=['GET', 'POST'])
 def edit_manage_customer():
+    import db_proxy
     intent=db_proxy.edit_manage_customer()
     return json.dumps(intent)
 
 @application.route('/edit_manage_chatbot', methods=['GET', 'POST'])
 def edit_manage_chatbot():
+    import db_proxy
     intent=db_proxy.edit_manage_chatbot()
     return json.dumps(intent)
 
 @application.route('/edit_new_keyword_management', methods=['GET', 'POST'])
 def edit_new_keyword_management():
+    import db_proxy
     intent=db_proxy.edit_new_keyword_management()
     return json.dumps(intent)
 
@@ -202,33 +211,39 @@ def generate_link():
 
 @application.route('/get_languages', methods=['GET', 'POST'])
 def get_languages():
+    import db_proxy
     intent=db_proxy.get_languages()
     return json.dumps(intent)
 
 
 @application.route('/add_keyword_json', methods=['GET', 'POST'])
 def add_keyword_json():
+    import db_proxy
     intent=db_proxy.add_keyword_json()
     return json.dumps(intent)
 
 @application.route('/delete_keyword_json', methods=['GET', 'POST'])
 def delete_keyword_json():
+    import db_proxy
     intent=db_proxy.delete_keyword_json()
     return json.dumps(intent)
 
 @application.route('/get_Customer_id', methods=['GET', 'POST'])
 def get_Customer_id():
+    import db_proxy
     cust_id = db_proxy.get_Customer_ID()
     return json.dumps(cust_id)
 
 
 @application.route('/add_corpus_details', methods=['GET', 'POST'])
 def add_corpus_details():
+    import db_proxy
     intent=db_proxy.add_corpus_details()
     return json.dumps(intent)
 
 @application.route('/delete_corpus_details', methods=['GET', 'POST'])
 def delete_corpus_details():
+    import db_proxy
     intent=db_proxy.delete_corpus_details()
     return json.dumps(intent)
 
@@ -238,12 +253,14 @@ def change_password():
 
 @application.route('/change_password_in_sql', methods=['GET', 'POST'])
 def change_password_in_sql():
+    import db_proxy
     intent=db_proxy.change_password_in_sql()
     return json.dumps(intent)
 
 
 @application.route('/logon', methods=['GET', 'POST'])
 def logon():
+    import db_proxy
     res = False
     if request.method == 'POST':
         email = request.form['email']
@@ -276,6 +293,7 @@ def get_customer_id_user():
 @application.route('/get_customer_id_verification',methods=["GET","POST"])
 def get_customer_id_verification():
     res = False
+    import db_proxy
     if request.method == 'POST':
         cust_id=request.form['cust_id']
         domain=request.form['domain']
@@ -287,31 +305,37 @@ def get_customer_id_verification():
 
 @application.route('/create_folder', methods=['GET', 'POST'])
 def create_folder():
+    import db_proxy
     intent=db_proxy.create_folder()
     return json.dumps(intent)
 
 @application.route('/create_customer', methods=['GET', 'POST'])
 def create_customer():
+    import db_proxy
     intent=db_proxy.create_customer()
     return json.dumps(intent)
 
 @application.route("/view_chatbot_table" ,methods=["GET","POST"])
 def view_chatbot_table(): 
+    import db_proxy
     intent=db_proxy.view_chatbot_table()
     return intent.to_json(orient="index")
     
 @application.route("/view_language_table" ,methods=["GET","POST"])
 def view_language_table(): 
+    import db_proxy
     intent=db_proxy.view_language_table()
     return intent.to_json(orient="index")
     
 @application.route("/view_customer_table" ,methods=["GET","POST"])
 def view_customer_table(): 
+    import db_proxy
     intent=db_proxy.view_customer_table()
     return intent.to_json(orient="index")
 
 @application.route("/set_new_password" ,methods=["GET","POST"])
 def set_new_password():
+    import db_proxy
     if request.method == 'POST':
         email=request.form['email']
         intent=db_proxy.set_new_password(email)
@@ -332,6 +356,7 @@ def logout():
 @application.route('/change_bot_status', methods=['GET', 'POST'])
 @cross_origin()
 def change_bot_status():
+    import db_proxy
     res_status = ''
     if request.method == 'POST':
         botId=request.form['botId']
@@ -347,6 +372,7 @@ def change_bot_status():
 @application.route('/change_bot_language_status', methods=['GET', 'POST'])
 @cross_origin()
 def change_bot_language_status():
+    import db_proxy
     res_status = ''
     if request.method == 'POST':
         botId=request.form['botId']
@@ -362,6 +388,7 @@ def change_bot_language_status():
 @application.route('/add_new_language', methods=['GET', 'POST'])
 @cross_origin()
 def add_new_language():
+    import db_proxy
     res_status = ''
     if request.method == 'POST':
         domain=request.form['domain']
@@ -632,6 +659,7 @@ def getKeys():
 @application.route('/getBotTheme', methods=['GET', 'POST'])
 @cross_origin()
 def getBotTheme():
+    import db_proxy
     try:
         auth_creds = request.authorization
         is_authorize = auth.Authorize(
@@ -656,6 +684,7 @@ def getBotTheme():
 @application.route('/getBotLanguages', methods=['GET', 'POST'])
 @cross_origin()
 def getBotLanguages():
+    import db_proxy
     try:
         auth_creds = request.authorization
         is_authorize = auth.Authorize(
@@ -680,6 +709,7 @@ def getBotLanguages():
 @application.route('/getChatbotName', methods=['GET', 'POST'])
 @cross_origin()
 def getChatbotName():
+    import db_proxy
     Domain = request.headers.get("Domain")
     Cust_Id = request.headers.get("WhoIs")
     
@@ -694,6 +724,7 @@ def getChatbotName():
 @application.route('/getIsActiveCust', methods=['GET', 'POST'])
 @cross_origin()
 def getIsActiveCust():
+    import db_proxy
     Domain = request.headers.get("Domain")
     Cust_Id = request.headers.get("WhoIs")
     
@@ -707,6 +738,7 @@ def getIsActiveCust():
 @application.route('/SendContactDetails', methods=['GET', 'POST'])
 @cross_origin()
 def SendContactDetails():
+    import db_proxy
     Domain = request.headers.get("Domain")
     Cust_Id = request.headers.get("WhoIs")
     Lang = request.headers.get("Lang")
@@ -736,6 +768,7 @@ def SendContactDetails():
     
 
 def get_chatbot_name():
+    import db_proxy
     Domain = request.headers.get("Domain")
     Cust_Id = request.headers.get("WhoIs")
     
