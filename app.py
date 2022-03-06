@@ -57,6 +57,24 @@ def create_app():
         else:    
             return render_template('manage_chatbot.html')
 
+
+    @application.route('/cblang')
+    def cblang():
+        try:
+            if session["email"] == "":
+                return render_template('login.html')
+        except:
+            return render_template('login.html')
+
+        if session['UserType']=="Admin":
+            return render_template('Keyword-management-admin.html')
+
+        elif session['UserType']=="User":
+            return render_template('Keyword-management-user.html')
+
+        else:    
+            return render_template('manage_language.html')
+
     @application.route('/manage_customer')
     def manage_customer():
         try:
@@ -284,6 +302,11 @@ def create_app():
         intent=db_proxy.view_chatbot_table()
         return intent.to_json(orient="index")
         
+    @application.route("/view_language_table" ,methods=["GET","POST"])
+    def view_language_table(): 
+        intent=db_proxy.view_language_table()
+        return intent.to_json(orient="index")
+        
     @application.route("/view_customer_table" ,methods=["GET","POST"])
     def view_customer_table(): 
         intent=db_proxy.view_customer_table()
@@ -323,6 +346,33 @@ def create_app():
 
         return res_status
 
+    @application.route('/change_bot_language_status', methods=['GET', 'POST'])
+    @cross_origin()
+    def change_bot_language_status():
+        res_status = ''
+        if request.method == 'POST':
+            botId=request.form['botId']
+            status=request.form['status']
+            if status == "true":
+                status = "Active"
+            else:
+                status = "InActive"
+            res_status = db_proxy.change_bot_language_status(botId, status)
+
+        return res_status
+
+    @application.route('/add_new_language', methods=['GET', 'POST'])
+    @cross_origin()
+    def add_new_language():
+        res_status = ''
+        if request.method == 'POST':
+            domain=request.form['domain']
+            cust_id=request.form['cust_id']
+            lang=request.form['lang']
+            
+            res_status = db_proxy.add_new_language(domain,cust_id,lang)
+
+        return res_status
     #%% Chatbot Web Methods %%
 
     @application.route('/getConfigs', methods=['GET', 'POST'])

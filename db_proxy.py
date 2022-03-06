@@ -1,5 +1,5 @@
 import os,json
-#import pyodbc
+import pyodbc
 from distutils.dir_util import copy_tree
 import numpy as np
 import pandas as pd
@@ -19,7 +19,7 @@ conn = mysql.connector.connect(host="chatbot-panel.ckjqe647gpza.us-east-1.rds.am
 #conn = pyodbc.connect('Driver={SQL Server Native Client 11.0};Server=103.102.234.23;Database=Chatbot_Panel;uid=CB_Chatbot;pwd=Brainy123$;')
 #conn = pyodbc.connect('Driver={SQL Server Native Client 11.0};Server=localhost;Database=Chatbot_Panel;Trusted_Connection=yes;')
 
-cursor=conn.cursor()
+#cursor=conn.cursor()
 
 def get_customer_id_verification(cust_id, domain):
     user = pd.read_sql_query("Select * from chatbot_panel Where Customer_ID='"+cust_id+"' and Domain='"+domain+"' and Status='Active';", conn)
@@ -30,6 +30,7 @@ def get_customer_id_verification(cust_id, domain):
 
 def check_user(email, password):
     user_check="Select * from users Where Email='"+email+"' and password='"+password+"' and Status='Active';"
+    cursor=conn.cursor()
     cursor.execute(user_check)
     value=cursor.fetchall()
     print(user_check)
@@ -45,6 +46,7 @@ def check_user(email, password):
                 return "FirstLogin",custid,userid,usertype
     else:
         return "","","",""
+    cursor.close()
  
 def get_domain():
     Domain = pd.read_sql_query("Select distinct Domain from chatbot_panel where Status='Active';", conn)
@@ -71,7 +73,8 @@ def get_languages():
     if request.method=="POST":
         domain=request.form['domain_input']
         cust_id=request.form['cust_id_input']
-        query = "Select * from Chatbot_Customer_Languages Where Domain='"+domain+"' and Customer_ID='"+cust_id+"' and Status='Active';"
+        query = "Select * from chatbot_customer_languages Where Domain='"+domain+"' and Customer_ID='"+cust_id+"' and Status='Active';"
+        print(query)
         Language = pd.read_sql_query(query, conn)
         Language = list(filter(lambda x: str(x) != '', Language['Language'].tolist()))
         Language=sorted(Language)
@@ -96,7 +99,7 @@ def create_folder():
                     copy_tree(new_path, path_2)
                     cur=conn.cursor()
                     # cur.execute("insert into chatbot_panel (ChatbotName,WelcomeMessage,Domain,Customer_ID,ColorCode) values (?,?,?,?,?);",(botname,welcome,name,customer_id,theme_color))
-                    cur.execute("insert into chatbot_panel (ChatbotName,Domain,Customer_ID,ColorCode) values (?,?,?,?,?);",(botname,name,customer_id,theme_color))
+                    cur.execute("insert into chatbot_panel (ChatbotName,Domain,Customer_ID,ColorCode) values ('"+botname+"','"+name+"','"+customer_id+"','"+theme_color+"');")
                     conn.commit()
                     cur.close()
 
@@ -348,6 +351,7 @@ def view_chatbot_table():
     status_list=[]
     created_on_list=[]
     Chatbot_ID_list=[]
+    cursor=conn.cursor()
     cursor.execute("select ChatbotName,WelcomeMessage,Domain,Customer_ID,ColorCode,Status,Created_on,Chatbot_ID from chatbot_panel order by Created_on desc;") 
     data = cursor.fetchall()
     for x in data:
@@ -368,6 +372,8 @@ def view_chatbot_table():
         status_list.append(status)
         Chatbot_ID_list.append(Chatbot_ID)
         created_on_list.append(str(created_on.strftime('%d-%b-%Y')))
+    
+    cursor.close()
     new_df={
         "botname":botname_list,
         "welcome":welcome_list,
@@ -377,6 +383,44 @@ def view_chatbot_table():
         "status":status_list,
         "created_on":created_on_list,
         "chatbot_id":Chatbot_ID_list
+    }
+    df=pd.DataFrame(new_df)
+    
+    return df
+
+def view_language_table():
+    Id_list=[]
+    domain_list=[]
+    cus_id_list=[]
+    lang_list=[]
+    status_list=[]
+    created_on_list=[]
+    cursor=conn.cursor()
+    cursor.execute("select Id,Domain,Customer_ID,Language,Status,Created_on from chatbot_customer_languages order by Domain,Customer_ID;") 
+    data = cursor.fetchall()
+    for x in data:
+        Id=x[0]
+        domain=x[1]
+        cust_id=x[2]
+        lang=x[3]
+        status=x[4]
+        created_on=x[5]
+        
+        Id_list.append(Id)
+        domain_list.append(domain)
+        cus_id_list.append(cust_id)
+        lang_list.append(lang)
+        status_list.append(status)
+        created_on_list.append(str(created_on.strftime('%d-%b-%Y')))
+    
+    cursor.close()
+    new_df={
+        "id":Id_list,
+        "domain":domain_list,
+        "customer_id":cus_id_list,
+        "lang":lang_list,
+        "status":status_list,
+        "created_on":created_on_list
     }
     df=pd.DataFrame(new_df)
     
@@ -424,6 +468,7 @@ def view_customer_table():
     status_list=[]
     created_on_list=[]
     contact_list=[]
+    cursor=conn.cursor()
     cursor.execute("select C.CusId,U.Email,U.UserType,C.Status,C.Created_on,U.Contact from customers C Join users U On C.CusId = U.CusId order by Created_on desc;") 
     data = cursor.fetchall()
     for x in data:
@@ -440,6 +485,8 @@ def view_customer_table():
         status_list.append(status)
         contact_list.append(contact)
         created_on_list.append(str(created_on.strftime('%d-%b-%Y')))
+
+    cursor.close()
     new_df={
         "email":email_list,
         "usertype":usertype_list,
@@ -502,7 +549,34 @@ def change_bot_status(botId, status):
 
     return Status
 
-    
+def change_bot_language_status(botId, status):
+    Status = ''
+    cursor=conn.cursor()
+    cursor.execute("Update chatbot_customer_languages set Status='"+status+"' Where Id='"+botId+"';")
+    Status = 'Updated'
+    #value=cursor.fetchall()
+    # if len(value) > 0:
+    #     for val in value:
+    #         Status=val[0]
+    conn.commit()
+    cursor.close()
+
+    return Status
+
+def add_new_language(domain,cust_id,lang):
+    Status = ''
+    cursor=conn.cursor()
+    cursor.execute("Insert into chatbot_customer_languages (Domain,Customer_ID,Language) values ('"+domain+"','"+cust_id+"','"+lang+"');")
+    Status = 'Updated'
+    #value=cursor.fetchall()
+    # if len(value) > 0:
+    #     for val in value:
+    #         Status=val[0]
+    conn.commit()
+    cursor.close()
+
+    return Status
+
 def add_corpus_details():
     path=get_file_path()
     if request.method=="POST":
@@ -521,11 +595,18 @@ def add_corpus_details():
                     df=pd.read_excel(os.path.join(path,corpus), engine='openpyxl')
                     new_data={
                         "Functional Area":other,
+                        "Recommend Intent":"",
                         "Sub Functional Area":intent,
+                        "Keyword": "",
+                        "Question": "",
                         "Response":response,
                         "Bullets":bullet,
+                        "Video URL": "",
+                        "Hyperlink Text": "",
+                        "Hyperlink URL": "",
+                        "Image URL": image_url,
                         "Visit Page":visit_page,
-                        "Image URL":image_url
+                        "Reference URL":""
                     }
                     new=df.append(new_data, ignore_index=True)
                     new.to_excel(os.path.join(path,corpus), index = False)
@@ -563,11 +644,18 @@ def add_corpus_details():
                     df=pd.read_excel(os.path.join(path,corpus_other_language), engine='openpyxl')
                     new_data={
                         "Functional Area":other,
+                        "Recommend Intent":"",
                         "Sub Functional Area":intent,
+                        "Keyword": "",
+                        "Question": "",
                         "Response":response,
                         "Bullets":bullet,
+                        "Video URL": "",
+                        "Hyperlink Text": "",
+                        "Hyperlink URL": "",
+                        "Image URL": image_url,
                         "Visit Page":visit_page,
-                        "Image URL":image_url
+                        "Reference URL":""
                         }
                     new=df.append(new_data, ignore_index=True)
                     new.to_excel(os.path.join(path,corpus_other_language), index = False)
@@ -802,7 +890,7 @@ def get_languages_by_details(domain, cust_id):
     print(domain, cust_id)
     languages = []
     cursor=conn.cursor()
-    cursor.execute("Select Language from Chatbot_Customer_Languages Where Domain='"+domain+"' and Customer_ID='"+cust_id+"' and Status='Active';")
+    cursor.execute("Select Language from chatbot_customer_languages Where Domain='"+domain+"' and Customer_ID='"+cust_id+"' and Status='Active';")
     value=cursor.fetchall()
     if len(value) > 0:
         for val in value:
@@ -831,6 +919,7 @@ def send_contact(Domain, CustId, contact_name, contact_email, contact_number):
     current_path = cwd
 
     user_check="Select * from users Where CusId='"+CustId+"' and Status='Active';"
+    cursor=conn.cursor()
     cursor.execute(user_check)
     value=cursor.fetchall()
     if len(value) > 0:
@@ -893,6 +982,8 @@ def send_contact(Domain, CustId, contact_name, contact_email, contact_number):
             </p>
         </body>
     </html>"""
+
+    cursor.close()
 
     mail.SendMail(cus_email, ("User Contact Details from " + bot_name), body, [current_path + "\static\dist\img\logotextalt.png"])
 
