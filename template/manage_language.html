@@ -6,12 +6,12 @@
         <div class="container-fluid">
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <h1>Manage ChatBot</h1>
+                    <h1>Manage Language</h1>
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
                         <li class="breadcrumb-item"><a href="#">Home</a></li>
-                        <li class="breadcrumb-item active">Manage ChatBot</li>
+                        <li class="breadcrumb-item active">Manage Language</li>
                     </ol>
                 </div>
             </div>
@@ -28,10 +28,6 @@
                     <div class="card card-outline card-primary">
                         <div class="card-body">
                             <div class="row">
-                                <div class="col-3">
-                                    <label for="botname">Chatbot Name</label>
-                                    <input class="form-control form-control-border" name="botname" id="botname" placeholder="Enter Chatbot Name">
-                                </div>
                                 <div class="col-3">
                                     <label for="name">Domain</label>
                                     <select type="text" class="custom-select form-control-border" name="name" id="name">
@@ -52,22 +48,15 @@
                                     <input class="form-control form-control-border" name="edit_id" id="edit_id">
                                 </div>
                                 <div class="col-3">
-                                    <label for="color">Color</label>
-                                    <input class="form-control form-control-border" name="color" id="color" placeholder="Enter color">
+                                    <label for="color">Language</label>
+                                    <input class="form-control form-control-border" name="color" id="color" placeholder="Enter language">
                                 </div>
-                            </div>
-                            <br>
-                            <div class="row">
-                                <!-- <div class="col-3">
-                                    <label for="welcome">Welcome Message</label>
-                                    <textarea id="welcome" type="text" class="form-control" style="width: 100%"></textarea>
-                                </div> -->
                                 <div class="col-3">
-                                    <!-- <br><br> -->
-                                    <input id="create_button" type="submit" value="CREATE NEW CHATBOT" class="btn btn-primary" onclick="submitbutton()">
+                                    <br>
+                                    <input id="create_button" type="submit" value="ADD LANGUAGE" class="btn btn-primary" onclick="submitbutton()">
                                     </input>
-                                    <input id="update_button" type="submit" value="UPDATE CHATBOT" class="btn btn-primary" onclick="update()">
-                                    <input id="cancel_button" type="submit" value="CANCEL" class="btn btn-secondary" onclick="cancel()">
+                                    <!-- <input id="update_button" type="submit" value="UPDATE CHATBOT" class="btn btn-primary" onclick="update()">
+                                    <input id="cancel_button" type="submit" value="CANCEL" class="btn btn-secondary" onclick="cancel()"> -->
                                 </div>
                             </div>
                             <div>
@@ -92,17 +81,15 @@
                                 <thead>
                                     <tr>
                                         <th>#</th>
-                                        <th>ChatbotName</th>
-                                        <!-- <th>Welcome Message</th> -->
                                         <th>Domain</th>
                                         <th>Customer_ID</th>
-                                        <th>Color</th>
+                                        <th>Language</th>
                                         <th>Status</th>
                                         <th>Created_on</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
-                                <tbody id="view_chatbot_table">
+                                <tbody id="view_language_table">
 
                                     <td colspan="6" style="text-align: center;">No Records Found.</td>
 
@@ -125,7 +112,7 @@
         $.ajax({
             type: 'POST',
             enctype: 'multipart/form-data',
-            url: '/view_chatbot_table',
+            url: '/view_language_table',
             processData: false,
             cache: false,
             timeout: 800000,
@@ -133,40 +120,35 @@
             data: {},
             success: function(data) {
 
-                $('#view_chatbot_table').empty()
+                $('#view_language_table').empty()
                 var data = $.parseJSON(data);
 
                 if (Object.keys(data).length > 0) {
 
                     for (var i = 0; i < Object.keys(data).length; i++) {
-                        var edit_key = data[i]['customer_id']
-                        var domain = data[i]['domain']
-                        var botname = data[i]['botname']
-                            // var welcome = data[i]['welcome']
-                        var color = data[i]['color']
                         var row = $("<tr/>");
                         row.append($('<td/>').html(i + 1));
-                        row.append($('<td/>').html(data[i]["botname"]));
+                        //row.append($('<td/>').html(data[i]["botname"]));
                         // row.append($('<td/>').html(data[i]["welcome"]));
                         row.append($('<td/>').html(data[i]["domain"]));
                         row.append($('<td/>').html(data[i]["customer_id"]));
-                        row.append($('<td/>').html("<div style='height: 25px; width: 25px; border-radius:5px; background-color: " + data[i]["color"] + "'></div>"));
+                        row.append($('<td/>').html(data[i]["lang"]));
                         row.append($('<td/>').html(data[i]["status"]));
                         row.append($('<td/>').html(data[i]["created_on"]));
-                        $('#view_chatbot_table').append(row);
-                        try {
-                            var btn = $('<button onclick="editfunction(this)"/>').addClass("btn btn-primary btn-sm").text("Edit");
+                        $('#view_language_table').append(row);
+                        // try {
+                        //     var btn = $('<button onclick="editfunction(this)"/>').addClass("btn btn-primary btn-sm").text("Edit");
 
-                            row.append($('<td/>').append(btn));
-                            $("#view_customer_table").append(row);
-                        } catch {}
+                        //     row.append($('<td/>').append(btn));
+                        //     $("#view_customer_table").append(row);
+                        // } catch {}
                         try {
                             var isChecked = '';
                             if (data[i]["status"] == "Active") {
                                 isChecked = 'checked';
                             }
                             var lbl = $('<label class="switch"></label>');
-                            var inpt = $('<input type="checkbox" ' + isChecked + ' onchange="change_status(\'' + data[i]["chatbot_id"] + '\',this)">');
+                            var inpt = $('<input type="checkbox" ' + isChecked + ' onchange="change_status(\'' + data[i]["id"] + '\',this)">');
                             var span = $('<span class="slider round"></span>');
 
                             lbl.append(inpt);
@@ -293,56 +275,26 @@
         $("#processing").show();
         var data = new FormData();
         data.append('domain', $("#name").val());
+        // data.append('welcome', $("#welcome").val());
         data.append('cust_id', $("#Customer_id_rm").val());
+        data.append('lang', $("#color").val());
         $.ajax({
             type: 'POST',
             enctype: 'multipart/form-data',
-            url: '/get_customer_id_verification',
+            url: '/add_new_language',
             processData: false,
-            contentType: false,
             cache: false,
             timeout: 800000,
+            contentType: false,
             data: data,
             success: function(data) {
-                if (($("#Customer_id_rm").val() == "") || ($("#Customer_id_rm").val() == "Select Customer ID") || ($("#name").val() == "none") || ($("#botname").val() == "") || ($("#color").val() == "")) {
-                    $("#out-message").text('Fill all the required details.').show(400).delay(4000).hide('slow');
-                } else if (data == "true") {
-                    $("#out-message").text('Customer ID and Domain is already available').show(400).delay(4000).hide('slow');
+                toastr.success('Created Successfully')
 
-                } else {
+                $('#botname').val('');
+                $('#color').val('');
 
-                    var data = new FormData();
-                    data.append('domain', $("#name").val());
-                    // data.append('welcome', $("#welcome").val());
-                    data.append('cust_id', $("#Customer_id_rm").val());
-                    data.append('botname', $("#botname").val());
-                    data.append('theme_color', $("#color").val());
-                    $.ajax({
-                        type: 'POST',
-                        enctype: 'multipart/form-data',
-                        url: '/create_folder',
-                        processData: false,
-                        cache: false,
-                        timeout: 800000,
-                        contentType: false,
-                        data: data,
-                        success: function(data) {
-                            toastr.success('Created Successfully')
-
-                            $('#botname').val('');
-                            $('#color').val('');
-
-                            load();
-                            $("#processing").hide();
-                        },
-                        error: function(err) {
-                            debugger;
-                            $(this).html("error!");
-                        }
-                    });
-
-
-                }
+                load();
+                $("#processing").hide();
             },
             error: function(err) {
                 debugger;
