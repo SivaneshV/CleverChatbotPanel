@@ -262,10 +262,10 @@
     }
 
     function editfunction(el) {
-        edit_key = $(el).parents('tr').find("td:eq(4)").text();
+        edit_key = $(el).parents('tr').find("td:eq(3)").text();
         botname = $(el).parents('tr').find("td:eq(1)").text();
         // welcome = $(el).parents('tr').find("td:eq(2)").text();
-        domain = $(el).parents('tr').find("td:eq(3)").text();
+        domain = $(el).parents('tr').find("td:eq(2)").text();
         color = rgb2hex($(el).parents('tr').find("td:eq(4)").find("div").css("background-color"));
 
         $('#create_button').hide();
