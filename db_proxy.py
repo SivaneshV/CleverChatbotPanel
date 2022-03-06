@@ -14,8 +14,8 @@ corpus="Corpus.xlsx"
 corpus_ta="Corpus_ta.xlsx"
 intent_file_ta="Intent_ta.json"
 
-#conn = mysql.connector.connect(host="chatbot-panel.ckjqe647gpza.us-east-1.rds.amazonaws.com",user="admin",passwd="Cbt2020$",port='3306',database="sys")
-conn = mysql.connector.connect(host="localhost",user="root",passwd="Brainy123$",port='3306',database="chatbot_panel")
+conn = mysql.connector.connect(host="chatbot-panel.ckjqe647gpza.us-east-1.rds.amazonaws.com",user="admin",passwd="Cbt2020$",port='3306',database="sys")
+#conn = mysql.connector.connect(host="localhost",user="root",passwd="Brainy123$",port='3306',database="chatbot_panel")
 #conn = pyodbc.connect('Driver={SQL Server Native Client 11.0};Server=103.102.234.23;Database=Chatbot_Panel;uid=CB_Chatbot;pwd=Brainy123$;')
 #conn = pyodbc.connect('Driver={SQL Server Native Client 11.0};Server=localhost;Database=Chatbot_Panel;Trusted_Connection=yes;')
 
