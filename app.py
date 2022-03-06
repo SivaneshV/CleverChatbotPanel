@@ -2,7 +2,6 @@ import find_response
 import response_generator
 import get_history
 from lazywritter import log_writter
-from flask import Flask, request
 import datetime
 import config
 import EnDe
@@ -369,7 +368,7 @@ def create_app():
             domain=request.form['domain']
             cust_id=request.form['cust_id']
             lang=request.form['lang']
-            
+
             res_status = db_proxy.add_new_language(domain,cust_id,lang)
 
         return res_status

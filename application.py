@@ -3,17 +3,16 @@ import find_response
 import response_generator
 import get_history
 from lazywritter import log_writter
-from flask import Flask, request, flash, jsonify
-import subprocess
-import time
 import datetime
-import os
-import sys
 import config
 import EnDe
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 import auth
 import json
+from flask import Flask, request,render_template,session
+import db_proxy
+import json
+import EnDe
 
 # %% Declaration(s)
 cfg = config.Config()
