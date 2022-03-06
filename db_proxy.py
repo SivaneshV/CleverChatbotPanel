@@ -14,8 +14,8 @@ corpus="Corpus.xlsx"
 corpus_ta="Corpus_ta.xlsx"
 intent_file_ta="Intent_ta.json"
 
-conn = mysql.connector.connect(host="chatbot-panel.ckjqe647gpza.us-east-1.rds.amazonaws.com",user="admin",passwd="Cbt2020$",port='3306',database="sys")
-#conn = mysql.connector.connect(host="localhost",user="root",passwd="Brainy123$",port='3306',database="chatbot_panel")
+#conn = mysql.connector.connect(host="chatbot-panel.ckjqe647gpza.us-east-1.rds.amazonaws.com",user="admin",passwd="Cbt2020$",port='3306',database="sys")
+conn = mysql.connector.connect(host="localhost",user="root",passwd="Brainy123$",port='3306',database="chatbot_panel")
 #conn = pyodbc.connect('Driver={SQL Server Native Client 11.0};Server=103.102.234.23;Database=Chatbot_Panel;uid=CB_Chatbot;pwd=Brainy123$;')
 #conn = pyodbc.connect('Driver={SQL Server Native Client 11.0};Server=localhost;Database=Chatbot_Panel;Trusted_Connection=yes;')
 
@@ -34,6 +34,7 @@ def check_user(email, password):
     cursor.execute(user_check)
     value=cursor.fetchall()
     print(user_check)
+    print(value)
     if len(value) > 0:
         for val in value:
             isfirstlogin=val[7]
@@ -109,10 +110,11 @@ def create_customer():
         user_type=request.form['usertype']
         new_mail_id=request.form['new_mail_id']
         password=request.form['createpassword']
+        contact=request.form['contact']
         if customer_id != "" and user_type!="" and new_mail_id!="":
             cur=conn.cursor()
-            cur.execute("insert into customers (CusId) values (?);",(customer_id))
-            cur.execute("insert into users (Email,UserType,Cusid,password,IsFirstLogin) values ('"+new_mail_id+"','"+user_type+"','"+customer_id+"','"+password+"','Yes');")
+            cur.execute("insert into customers (CusId) values ('"+customer_id+"');",)
+            cur.execute("insert into users (Email,UserType,Cusid,password,IsFirstLogin,Contact) values ('"+new_mail_id+"','"+user_type+"','"+customer_id+"','"+password+"','Yes','"+contact+"');")
             conn.commit()
             cur.close()
       

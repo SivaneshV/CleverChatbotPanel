@@ -367,7 +367,7 @@ def add_new_language():
         domain=request.form['domain']
         cust_id=request.form['cust_id']
         lang=request.form['lang']
-        
+
         res_status = db_proxy.add_new_language(domain,cust_id,lang)
 
     return res_status
@@ -784,7 +784,3 @@ def get_intent_json_path():
         return root_path + "Intent.json"
     else:
         return root_path + "Intent_" + Lang + ".json"
-
-
-# if __name__ == "__main__":
-#     app.run(debug = True,port=2000)
