@@ -132,14 +132,14 @@
             success: function(data) {
                 $('#view_customer_table').empty()
                 var data = $.parseJSON(data);
-                
+
                 if (Object.keys(data).length > 0) {
 
                     for (var i = 0; i < Object.keys(data).length; i++) {
                         var edit_key = data[i]['customer_id']
-                        var mail=data[i]['email']
-                        var contact=data[i]['contact']
-                        var usertype=data[i]['usertype']
+                        var mail = data[i]['email']
+                        var contact = data[i]['contact']
+                        var usertype = data[i]['usertype']
                         var row = $("<tr/>");
                         row.append($('<td/>').html(i + 1));
                         row.append($('<td/>').html(data[i]["customer_id"]));
@@ -150,12 +150,11 @@
                         row.append($('<td/>').html(data[i]["created_on"]));
                         $('#view_customer_table').append(row)
                         try {
-                            var btn = $('<button onclick="editfunction(\'' + edit_key + '\',\'' + mail +'\',\'' + contact + '\',\'' + usertype + '\')"/>').addClass("btn btn-primary btn-sm").text("Edit");
+                            var btn = $('<button onclick="editfunction(this)"/>').addClass("btn btn-primary btn-sm").text("Edit");
 
                             row.append($('<td/>').append(btn));
                             $("#view_customer_table").append(row);
-                        } 
-                        catch { }
+                        } catch {}
 
 
                     }
@@ -187,7 +186,15 @@
 <!-- '\',\'' + $user + -->
 
 <script>
-    function editfunction(edit_key,mail,contact,usertype){
+    function editfunction(el) {
+
+        var currentRow = $(el).closest("tr");
+
+        edit_key = currentRow.find("td:eq(1)").text();
+        mail = currentRow.find("td:eq(2)").text();
+        contact = currentRow.find("td:eq(3)").text();
+        usertype = currentRow.find("td:eq(4)").text();
+
         $('#create_button').hide();
         $('#user_type').hide();
         $('#edit_usertype').show();
@@ -212,6 +219,7 @@
         data.append('new_mail_id', $("#mail_id").val());
         data.append('usertype', $("#user_type").val());
         data.append('cust_id', $("#customer_id").val());
+        $("#processing").show();
         $.ajax({
             type: 'POST',
             enctype: 'multipart/form-data',
@@ -222,8 +230,6 @@
             timeout: 800000,
             data: data,
             success: function(data) {
-                debugger;
-
                 if (($("#customer_id").val().length == 0) || ($("#name").val() == "none") || ($("#user_type").val() == "none") || ($("#mail_id").val() == "") || ($("#create_password").val() == "") || ($("#color").val() == "") || ($("#lang").val() == "")) {
                     $("#out-message").text('Fill all the required details.').show(400).delay(4000).hide('slow');
                 } else if (data == "true") {
@@ -237,6 +243,7 @@
                     data.append('new_mail_id', $("#mail_id").val());
                     data.append('usertype', $("#user_type").val());
                     data.append('theme_color', $("#color").val());
+                    data.append('contact', $("#contact").val());
                     data.append('createpassword', $("#create_password").val());
                     $.ajax({
                         type: 'POST',
@@ -276,8 +283,8 @@
 
                                             for (var i = 0; i < Object.keys(data).length; i++) {
                                                 var row = $("<tr/>");
-                                                var edit_key=data[i]['customer_id']
-                                               
+                                                var edit_key = data[i]['customer_id']
+
                                                 row.append($('<td/>').html(i + 1));
                                                 row.append($('<td/>').html(data[i]["customer_id"]));
                                                 row.append($('<td/>').html(data[i]["email"]));
@@ -291,8 +298,7 @@
 
                                                     row.append($('<td/>').append(btn));
                                                     $("#view_customer_table").append(row);
-                                                } 
-                                                catch { }
+                                                } catch {}
 
 
                                             }
@@ -302,6 +308,7 @@
                                             row.append($('<td colspan=6 style="text-align: center"/>').html("No Records Found."));
                                             $('#view_customer_table').append(row)
                                         }
+                                        $("#processing").hide();
                                     }
 
                                 });
@@ -314,6 +321,7 @@
                         error: function(err) {
                             debugger;
                             $(this).html("error!");
+                            $("#processing").hide();
                         }
                     });
 
@@ -323,6 +331,7 @@
             error: function(err) {
                 debugger;
                 $(this).html("error!");
+                $("#processing").hide();
             }
         });
 
@@ -332,11 +341,13 @@
 
 
 <script>
-    function update(){
+    function update() {
         var data = new FormData();
         data.append('contact', $("#contact").val());
         data.append('cust_id', $("#customer_id").val());
-        data.append('mail_id', $("#mail_id").val());    
+        data.append('mail_id', $("#mail_id").val());
+        data.append('contact', $("#contact").val());
+        $("#processing").show();
         $.ajax({
             type: 'POST',
             enctype: 'multipart/form-data',
@@ -350,7 +361,7 @@
                 cancel()
                 $('#contact').val('')
                 $("#processing").hide();
-                
+
             }
         });
     }
@@ -358,75 +369,74 @@
 
 
 <script>
-    function cancel(){
+    function cancel() {
         $(document).ready(function() {
-        var data = new FormData();
-        $('#cancel_button').hide(200);
-        $('#update_button').hide(200);
-        $('#create_button').show(200);
-        $.ajax({
-            type: 'POST',
-            enctype: 'multipart/form-data',
-            url: '/view_customer_table',
-            processData: false,
-            cache: false,
-            timeout: 800000,
-            contentType: false,
-            data: data,
-            success: function(data) {
-                $('#customer_id').val('');
-                $('#language').val('');
-                $('#color').val('');
-                $('#create_password').val('');
-                $('#language').val('');
-                $('#mail_id').val('');
-                $('#contact').val('');               
-                $('#customer_id').attr('disabled', false);
-                $('#create_password').attr('disabled', false);
-                $('#edit_usertype').attr('disabled', false);
-                $('#edit_usertype').hide();
-                $('#user_type').show();
-                $('#view_customer_table').empty()
-                var data = $.parseJSON(data);
+            var data = new FormData();
+            $('#cancel_button').hide(200);
+            $('#update_button').hide(200);
+            $('#create_button').show(200);
+            $.ajax({
+                type: 'POST',
+                enctype: 'multipart/form-data',
+                url: '/view_customer_table',
+                processData: false,
+                cache: false,
+                timeout: 800000,
+                contentType: false,
+                data: data,
+                success: function(data) {
+                    $('#customer_id').val('');
+                    $('#language').val('');
+                    $('#color').val('');
+                    $('#create_password').val('');
+                    $('#language').val('');
+                    $('#mail_id').val('');
+                    $('#contact').val('');
+                    $('#customer_id').attr('disabled', false);
+                    $('#create_password').attr('disabled', false);
+                    $('#edit_usertype').attr('disabled', false);
+                    $('#edit_usertype').hide();
+                    $('#user_type').show();
+                    $('#view_customer_table').empty()
+                    var data = $.parseJSON(data);
 
-                if (Object.keys(data).length > 0) {
+                    if (Object.keys(data).length > 0) {
 
-                    for (var i = 0; i < Object.keys(data).length; i++) {
-                        var edit_key = data[i]['customer_id']
-                        var mail=data[i]['email']
-                        var contact=data[i]['contact']
-                        var usertype=data[i]['usertype']
+                        for (var i = 0; i < Object.keys(data).length; i++) {
+                            var edit_key = data[i]['customer_id']
+                            var mail = data[i]['email']
+                            var contact = data[i]['contact']
+                            var usertype = data[i]['usertype']
+                            var row = $("<tr/>");
+                            row.append($('<td/>').html(i + 1));
+                            row.append($('<td/>').html(data[i]["customer_id"]));
+                            row.append($('<td/>').html(data[i]["email"]));
+                            row.append($('<td/>').html(data[i]["contact"]));
+                            row.append($('<td/>').html(data[i]["usertype"]));
+                            row.append($('<td/>').html(data[i]["status"]));
+                            row.append($('<td/>').html(data[i]["created_on"]));
+                            $('#view_customer_table').append(row)
+                            try {
+                                var btn = $('<button onclick="editfunction(\'' + edit_key + '\',\'' + mail + '\',\'' + contact + '\',\'' + usertype + '\')"/>').addClass("btn btn-primary btn-sm").text("Edit");
+                                row.append($('<td/>').append(btn));
+                                $("#view_customer_table").append(row);
+                            } catch {}
+
+
+                        }
+
+                    } else {
                         var row = $("<tr/>");
-                        row.append($('<td/>').html(i + 1));
-                        row.append($('<td/>').html(data[i]["customer_id"]));
-                        row.append($('<td/>').html(data[i]["email"]));
-                        row.append($('<td/>').html(data[i]["contact"]));
-                        row.append($('<td/>').html(data[i]["usertype"]));
-                        row.append($('<td/>').html(data[i]["status"]));
-                        row.append($('<td/>').html(data[i]["created_on"]));
+                        row.append($('<td colspan=6 style="text-align: center"/>').html("No Records Found."));
                         $('#view_customer_table').append(row)
-                        try {
-                            var btn = $('<button onclick="editfunction(\'' + edit_key + '\',\'' + mail +'\',\'' + contact + '\',\'' + usertype + '\')"/>').addClass("btn btn-primary btn-sm").text("Edit");
-                            row.append($('<td/>').append(btn));
-                            $("#view_customer_table").append(row);
-                        } 
-                        catch { }
-
-
                     }
-
-                } else {
-                    var row = $("<tr/>");
-                    row.append($('<td colspan=6 style="text-align: center"/>').html("No Records Found."));
-                    $('#view_customer_table').append(row)
                 }
-            }
+
+            });
+
+
 
         });
-
-
-
-    });
     }
 </script>
 {% endblock %}

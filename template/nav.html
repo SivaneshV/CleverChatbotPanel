@@ -107,6 +107,21 @@
                     </ul>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
+                            {% if 'cblang' in url_for(request.endpoint) %}
+                            <a href="/cblang" class="nav-link active">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Manage Cust Language</p>
+                            </a>
+                            {% else %}
+                            <a href="/cblang" class="nav-link">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Manage Cust Language</p>
+                            </a>
+                            {% endif %}
+                        </li>
+                    </ul>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
                             {% if 'response' in url_for(request.endpoint) %}
                             <a href="/response_management" class="nav-link active">
                                 <i class="far fa-circle nav-icon"></i>

@@ -474,6 +474,7 @@
         data.append('visit_page_input', $("#visit_page_rm").val());
         data.append('image_url', $("#image_url").val());
         data.append('language_input', $("#language_rm").val());
+        $("#processing").show();
         $.ajax({
             type: 'POST',
             enctype: 'multipart/form-data',
